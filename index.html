@@ -51,7 +51,7 @@ if(!/^https:\/\/[^ ]+\.supabase\.co/.test(SB_URL)||SB_KEY.startsWith('YOUR_')){d
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const ST=['New','Contacted','Interview','Accepted','Hired','Rejected','No answer'];
 const AR={'Log in':'تسجيل الدخول','Sign up':'إنشاء حساب','Log out':'خروج','Email':'البريد الإلكتروني','Password':'كلمة المرور','Finish setup':'إكمال الإعداد','Full name':'الاسم الكامل','Invite code':'رمز الدعوة','Candidates':'المرشحون','Team':'الفريق','News':'الأخبار','Invites':'الدعوات','+ Add candidate':'+ إضافة مرشح','Search name, phone or job':'ابحث بالاسم أو الهاتف أو الوظيفة','All':'الكل','New':'جديد','Contacted':'تم التواصل','Interview':'مقابلة','Accepted':'مقبول','Hired':'تم التوظيف','Rejected':'مرفوض','No answer':'لا رد','Phone':'الهاتف','Age':'العمر','Overnight shift':'وردية ليلية','Offer':'العرض','Voice note':'ملاحظة صوتية','Save':'حفظ','Delete':'حذف','WhatsApp':'واتساب','Yes':'نعم','No':'لا','Feedback':'ملاحظات','Post':'نشر','Generate invite':'إنشاء دعوة','Copy':'نسخ','Add':'إضافة','Offers':'العروض','Submit candidate':'إرسال المرشح','Cancel':'إلغاء','Saved':'تم الحفظ','Copied':'تم النسخ','Owner':'المالك','Recruiter':'مجند','Used':'مستخدم','Unused':'غير مستخدم','Remove':'إزالة','Alerts':'التنبيهات','Voice note of':'ملاحظة صوتية لـ','Search...':'بحث...','by':'بواسطة','Work':'العمل','Comment':'تعليق','Send':'إرسال','Next step':'الخطوة التالية'};
-let lang=localStorage.lang||'en',me=null,sess=null,tab='c',flt='All',q='',showForm=false,D={c:[],t:[],o:[],n:[],i:[],a:[],l:[],m:[]},authMode='in',aq='',ch=null,view='w',flowId=null,flowStep=1;
+let lang=localStorage.lang||'en',me=null,sess=null,tab='c',flt='All',q='',showForm=false,D={c:[],t:[],o:[],n:[],i:[],a:[],l:[],m:[]},authMode='in',aq='',ch=null,view='w',flowId=location.hash.startsWith('#candidate/')?decodeURIComponent(location.hash.slice(11)):null,flowStep=1;
 const t=k=>lang==='ar'&&AR[k]||k;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=s=>document.querySelector(s);
@@ -73,7 +73,7 @@ async function load(){
   D.c=c.data||[];D.t=tm.data||[];D.o=o.data||[];D.n=n.data||[];
   if(owner()){const i=await sb.from('invites').select('*').order('created_at',{ascending:false});D.i=i.data||[]}
 }
-setInterval(async()=>{if(me&&!showForm&&!document.activeElement.matches('textarea,input')){await load();render()}},30000);
+setInterval(async()=>{if(me&&!flowId&&!showForm&&!document.activeElement.matches('textarea,input')){await load();render()}},30000);
 
 function render(){
   const a=$('#app');
@@ -151,14 +151,14 @@ function cardHTML(c){
   }
   function renderFlow(){
     const c=D.c.find(x=>x.id===flowId);
-    if(!c){flowId=null;return render()}
+    if(!c){flowId=null;history.replaceState(null,'',location.pathname+location.search);return render()}
     const offers=(c.approved_offers||[]).map(n=>D.o.find(o=>o.name===n)||{name:n});
     const templates=offers.map(o=>safe(o.template_url)).filter(Boolean);
     const links=offers.map(o=>safe(o.form_link)).filter(Boolean);
     const a=$('#app');
     if(flowStep===1){
       a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Application form</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Open the application form, complete it, then press Next.</p>${links.length?links.map((u,i)=>`<p><a class="lk" href="${esc(u)}" target="_blank" rel="noopener">📝 Open application form${links.length>1?' '+(i+1):''}</a></p>`).join(''):'<p class="meta">No application form link has been added for this offer yet.</p>'}<button class="p" id="next">Next →</button></div>`;
-      $('#back').onclick=()=>{flowId=null;render()};
+      $('#back').onclick=()=>{flowId=null;history.replaceState(null,'',location.pathname+location.search);render()};
       $('#next').onclick=async()=>{const{error}=await sb.from('candidates').update({form_done:true}).eq('id',c.id);if(error)return toast(error.message);await load();flowStep=2;render()};
       return
     }
@@ -172,7 +172,7 @@ function cardHTML(c){
       const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await sb.from('candidates').update({shot_path:path,shot_url:url}).eq('id',c.id);
       if(error){b.disabled=false;return $('#flow-er').textContent=error.message}
       const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[]).join(', ')}\nScreenshot: ${url}`;
-      window.open('https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94','_blank');navigator.clipboard?.writeText(text);toast('Message copied. Paste it in the WhatsApp group.');await load();flowId=null;flowStep=1;render();
+      window.open('https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94','_blank');navigator.clipboard?.writeText(text);toast('Message copied. Paste it in the WhatsApp group.');await load();flowId=null;flowStep=1;history.replaceState(null,'',location.pathname+location.search);render();
     };
   }
   const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>
@@ -205,7 +205,7 @@ function bindCard(el){
 const safe=u=>/^https?:\/\//i.test(u||'')?u:'';
 function openCandidateFlow(id){
   if(!D.c.some(c=>c.id===id))return toast('Candidate is not available for this account');
-  flowId=id;flowStep=1;render();
+  flowId=id;flowStep=1;history.replaceState(null,'',`#candidate/${encodeURIComponent(id)}`);render();
 }
 const acts=n=>{if(!['Accepted','Interview','Hired'].includes(n.status)||!(n.offers||[]).length||(n.feedback||'').startsWith('Step'))return'';
   const mine=D.c.some(c=>c.id===n.candidate_id);
@@ -243,7 +243,7 @@ function paneA(){
       const w=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' at '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       const o=(n.offers&&n.offers.length)?n.offers.join(' · '):(n.offer||'');
       return `<div class="card nt ${esc(n.status)}"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><b>${EM[n.status]||'🔔'} ${t('Voice note of')} ${esc(n.candidate_name)}: ${t(n.status)}</b><span class="meta" style="white-space:nowrap">${w}</span></div><div class="meta">${esc(o)}</div>${n.feedback?`<div>${esc(n.feedback)}</div>`:''}<div class="meta">${t('by')} ${esc(n.actor_name||'')}</div>${acts(n)}</div>`}).join(''):'<div class="empty">—</div>';
-    $('#al').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>openFlow(b.dataset.go));
+    $('#al').querySelectorAll('[data-go]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();openCandidateFlow(b.dataset.go)});
   };
   $('#as').oninput=e=>{aq=e.target.value;draw()};
   draw();
