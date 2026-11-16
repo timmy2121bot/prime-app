@@ -51,7 +51,7 @@ if(!/^https:\/\/[^ ]+\.supabase\.co/.test(SB_URL)||SB_KEY.startsWith('YOUR_')){d
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const ST=['New','Contacted','Interview','Accepted','Hired','Rejected','No answer'];
 const AR={'Log in':'تسجيل الدخول','Sign up':'إنشاء حساب','Log out':'خروج','Email':'البريد الإلكتروني','Password':'كلمة المرور','Finish setup':'إكمال الإعداد','Full name':'الاسم الكامل','Invite code':'رمز الدعوة','Candidates':'المرشحون','Team':'الفريق','News':'الأخبار','Invites':'الدعوات','+ Add candidate':'+ إضافة مرشح','Search name, phone or job':'ابحث بالاسم أو الهاتف أو الوظيفة','All':'الكل','New':'جديد','Contacted':'تم التواصل','Interview':'مقابلة','Accepted':'مقبول','Hired':'تم التوظيف','Rejected':'مرفوض','No answer':'لا رد','Phone':'الهاتف','Age':'العمر','Overnight shift':'وردية ليلية','Offer':'العرض','Voice note':'ملاحظة صوتية','Save':'حفظ','Delete':'حذف','WhatsApp':'واتساب','Yes':'نعم','No':'لا','Feedback':'ملاحظات','Post':'نشر','Generate invite':'إنشاء دعوة','Copy':'نسخ','Add':'إضافة','Offers':'العروض','Submit candidate':'إرسال المرشح','Cancel':'إلغاء','Saved':'تم الحفظ','Copied':'تم النسخ','Owner':'المالك','Recruiter':'مجند','Used':'مستخدم','Unused':'غير مستخدم','Remove':'إزالة','Alerts':'التنبيهات','Voice note of':'ملاحظة صوتية لـ','Search...':'بحث...','by':'بواسطة','Work':'العمل','Comment':'تعليق','Send':'إرسال','Next step':'الخطوة التالية'};
-let lang=localStorage.lang||'en',me=null,sess=null,tab='c',flt='All',q='',showForm=false,D={c:[],t:[],o:[],n:[],i:[],a:[],l:[],m:[]},authMode='in',aq='',ch=null,view='w';
+let lang=localStorage.lang||'en',me=null,sess=null,tab='c',flt='All',q='',showForm=false,D={c:[],t:[],o:[],n:[],i:[],a:[],l:[],m:[]},authMode='in',aq='',ch=null,view='w',flowId=null,flowStep=1;
 const t=k=>lang==='ar'&&AR[k]||k;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=s=>document.querySelector(s);
@@ -82,6 +82,7 @@ function render(){
     $('#go').onclick=async()=>{const f={email:$('#em').value.trim(),password:$('#pw').value};const r=authMode==='in'?await sb.auth.signInWithPassword(f):await sb.auth.signUp(f);if(r.error)$('#er').textContent=r.error.message;else if(authMode==='up'&&!r.data.session)$('#er').textContent='Check your email to confirm, then log in.'};return}
   if(!me){a.innerHTML=`<div class="card"><h2>${t('Finish setup')}</h2><label>${t('Full name')}</label><input id="fn"><label>${t('Invite code')}</label><input id="ic" autocapitalize="characters"><p class="meta">Leave the code empty only if you are the first account (the owner).</p><div class="msg" id="er"></div><button class="p" id="go">${t('Finish setup')}</button></div>`;
     $('#go').onclick=async()=>{const{error}=await sb.rpc('finish_setup',{p_name:$('#fn').value.trim(),p_code:$('#ic').value.trim().toUpperCase()});if(error)$('#er').textContent=error.message;else boot()};return}
+  if(flowId){renderFlow();return}
   const un=tab==='a'?0:D.a.filter(x=>x.id>(+localStorage.seen||0)).length;const tabs=[['c',`${t('Candidates')} (${D.c.length})`],['t',`${t('Team')} (${D.t.length})`],['a',`🔔 ${t('Alerts')}${un?` (${un})`:''}`],];if(owner())tabs.push(['i',t('Invites')]);
   a.innerHTML=`<div class="seg"><button data-v="w" class="${view==='w'?'on':''}">🧭 ${t('Work')}</button><button data-v="f" class="${view==='f'?'on':''}">📰 ${t('News')}</button></div><div class="pages${view==='f'?' f':''}" id="pg"><section class="pg"><div class="tabs">${tabs.map(x=>`<button data-t="${x[0]}" class="${tab===x[0]?'on':''}">${x[1]}</button>`).join('')}</div><div id="pane"></div></section><section class="pg" id="pf"></section></div>`;
   a.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;showForm=false;render()});
@@ -148,6 +149,32 @@ function cardHTML(c){
       act=`<div class="meta">Step 4 — send a screenshot like this template:</div>${tp?`<img class="tpl" src="${esc(tp)}" alt="template">`:''}<input type="file" class="sf" accept="image/*"><div style="margin-top:8px"><button class="p ss">Send screenshot</button></div>`}
     else act=`<div class="meta">✅ All steps complete · <a class="lk" href="${esc(c.shot_url)}" target="_blank" rel="noopener">Screenshot</a></div>`;
   }
+  function renderFlow(){
+    const c=D.c.find(x=>x.id===flowId);
+    if(!c){flowId=null;return render()}
+    const offers=(c.approved_offers||[]).map(n=>D.o.find(o=>o.name===n)||{name:n});
+    const templates=offers.map(o=>safe(o.template_url)).filter(Boolean);
+    const links=offers.map(o=>safe(o.form_link)).filter(Boolean);
+    const a=$('#app');
+    if(flowStep===1){
+      a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Application form</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Open the application form, complete it, then press Next.</p>${links.length?links.map((u,i)=>`<p><a class="lk" href="${esc(u)}" target="_blank" rel="noopener">📝 Open application form${links.length>1?' '+(i+1):''}</a></p>`).join(''):'<p class="meta">No application form link has been added for this offer yet.</p>'}<button class="p" id="next">Next →</button></div>`;
+      $('#back').onclick=()=>{flowId=null;render()};
+      $('#next').onclick=async()=>{const{error}=await sb.from('candidates').update({form_done:true}).eq('id',c.id);if(error)return toast(error.message);await load();flowStep=2;render()};
+      return
+    }
+    const template=templates[0];
+    a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Confirmation message</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Upload the screenshot confirming the candidate's attendance, then press Send.</p>${template?`<img class="tpl" src="${esc(template)}" alt="Confirmation template">`:''}<label>Confirmation screenshot</label><input id="confirm-shot" type="file" accept="image/*"><div class="msg" id="flow-er"></div><button class="p" id="send-confirm">Send to WhatsApp group</button></div>`;
+    $('#back').onclick=()=>{flowStep=1;render()};
+    $('#send-confirm').onclick=async()=>{
+      const f=$('#confirm-shot').files[0];if(!f)return $('#flow-er').textContent='Choose the confirmation screenshot first';
+      const b=$('#send-confirm');b.disabled=true;const path=`${sess.user.id}/confirmation-${Date.now()}-${f.name.replace(/[^\w.\-]/g,'_')}`;const u=await sb.storage.from('voice-notes').upload(path,f);
+      if(u.error){b.disabled=false;return $('#flow-er').textContent=u.error.message}
+      const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await sb.from('candidates').update({shot_path:path,shot_url:url}).eq('id',c.id);
+      if(error){b.disabled=false;return $('#flow-er').textContent=error.message}
+      const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[]).join(', ')}\nScreenshot: ${url}`;
+      window.open('https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94','_blank');navigator.clipboard?.writeText(text);toast('Message copied. Paste it in the WhatsApp group.');await load();flowId=null;flowStep=1;render();
+    };
+  }
   const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>
 <div class="chips acc" style="display:${['Accepted','Interview','Hired'].includes(c.status)?'flex':'none'}">${D.o.filter(o=>o.active||ao.includes(o.name)).map(o=>`<button data-o="${esc(o.name)}" class="${ao.includes(o.name)?'on':''}">${esc(o.name)}</button>`).join('')}</div>
 <textarea rows="2" placeholder="${t('Feedback')}">${esc(c.feedback||'')}</textarea>`:(c.feedback?`<div class="meta">💬 ${esc(c.feedback)}</div>`:'');
@@ -178,7 +205,7 @@ function bindCard(el){
 const safe=u=>/^https?:\/\//i.test(u||'')?u:'';
 const acts=n=>{if(!['Accepted','Interview','Hired'].includes(n.status)||!(n.offers||[]).length||(n.feedback||'').startsWith('Step'))return'';
   const mine=D.c.some(c=>c.id===n.candidate_id);
-  return`<div class="chips" style="margin-top:8px">${n.offers.map(o=>{const f=safe((D.o.find(x=>x.name===o)||{}).form_link);return f?`<a class="lk" href="${esc(f)}" target="_blank" rel="noopener">📝 ${esc(o)}</a>`:''}).join('')}${mine?`<button class="p" data-go="${esc(n.candidate_name)}">${t('Next step')} →</button>`:''}</div>`};
+  return`<div class="chips" style="margin-top:8px">${mine?`<button class="p" data-go="${esc(n.candidate_id)}">${t('Next step')} →</button>`:''}</div>`};
 function setView(v){view=v;const g=$('#pg');if(g)g.classList.toggle('f',v==='f');document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
 function bindPages(){document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>setView(b.dataset.v));const g=$('#pg');let x0=0,y0=0;
   g.ontouchstart=e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY};
@@ -212,7 +239,7 @@ function paneA(){
       const w=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' at '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       const o=(n.offers&&n.offers.length)?n.offers.join(' · '):(n.offer||'');
       return `<div class="card nt ${esc(n.status)}"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><b>${EM[n.status]||'🔔'} ${t('Voice note of')} ${esc(n.candidate_name)}: ${t(n.status)}</b><span class="meta" style="white-space:nowrap">${w}</span></div><div class="meta">${esc(o)}</div>${n.feedback?`<div>${esc(n.feedback)}</div>`:''}<div class="meta">${t('by')} ${esc(n.actor_name||'')}</div>${acts(n)}</div>`}).join(''):'<div class="empty">—</div>'};
-  $('#al').onclick=e=>{const b=e.target.closest('[data-go]');if(b){q=b.dataset.go;flt='All';tab='c';view='w';render()}};$('#as').oninput=e=>{aq=e.target.value;draw()};draw();
+  $('#al').onclick=e=>{const b=e.target.closest('[data-go]');if(b){flowId=b.dataset.go;flowStep=1;render()}};$('#as').oninput=e=>{aq=e.target.value;draw()};draw();
 }
 
 /* ---------- Team ---------- */
