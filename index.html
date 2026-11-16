@@ -35,6 +35,10 @@ audio{width:100%;margin:8px 0}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--a);color:#031018;padding:10px 18px;border-radius:30px;font-weight:700;display:none}
 .empty{color:var(--mu);text-align:center;padding:30px}
 .nt{border-color:var(--b)}.nt.Rejected{border-top-color:var(--no);border-right-color:var(--no);border-bottom-color:var(--no)}.nt.Accepted,.nt.Hired{border-top-color:var(--ok);border-right-color:var(--ok);border-bottom-color:var(--ok)}
+.seg{display:flex;gap:6px;margin-bottom:14px}.seg button{flex:1;border-radius:30px}.seg button.on{background:#12303f;border-color:var(--a);color:var(--a);font-weight:700}
+.pages{display:flex;overflow:hidden}.pg{min-width:100%;transition:margin .3s}.pages:not(.f) #pf{height:0;overflow:hidden}.pages.f .pg:first-child{height:0;overflow:hidden;margin-inline-start:-100%}
+.steps{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.steps span{font-size:12px;padding:3px 9px;border-radius:20px;border:1px solid var(--b);color:var(--mu)}.steps .done{background:#0d2b21;color:var(--ok);border-color:#165a41}.steps .cur{border-color:var(--a);color:var(--a)}
+a.lk{display:inline-block;padding:6px 12px;border:1.5px solid var(--a);color:var(--a);border-radius:12px;text-decoration:none;font-size:14px}.tpl{max-width:100%;border-radius:12px;border:1px solid var(--b);margin:8px 0}
 [dir=rtl] .card{border-left:1px solid var(--b);border-right:4px solid var(--a)}
 </style></head><body>
 <header><div class="logo">P</div><div class="ttl">Timmy's <b>Team</b><small>Prime</small></div><div class="hb"><button id="lg">العربية</button><button id="lo" hidden></button></div></header>
@@ -43,10 +47,11 @@ audio{width:100%;margin:8px 0}
 /* ===== 1. PASTE YOUR SUPABASE KEYS (Project Settings > API) ===== */
 const SB_URL='https://tsilwwnjdqzeiwgfdzip.supabase.co', SB_KEY='sb_publishable_QJI5yFd2HCAxZ_3oAEleLQ_GvJI6xA-';
 /* ================================================================= */
+if(!/^https:\/\/[^ ]+\.supabase\.co/.test(SB_URL)||SB_KEY.startsWith('YOUR_')){document.getElementById('app').innerHTML='<div class="card"><h2>Setup needed</h2><p class="meta">Open index.html in a text editor, paste your Supabase Project URL and anon key into SB_URL and SB_KEY near the top of the script, save, then refresh.</p></div>';throw new Error('Missing Supabase keys')}
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const ST=['New','Contacted','Interview','Accepted','Hired','Rejected','No answer'];
-const AR={'Log in':'تسجيل الدخول','Sign up':'إنشاء حساب','Log out':'خروج','Email':'البريد الإلكتروني','Password':'كلمة المرور','Finish setup':'إكمال الإعداد','Full name':'الاسم الكامل','Invite code':'رمز الدعوة','Candidates':'المرشحون','Team':'الفريق','News':'الأخبار','Invites':'الدعوات','+ Add candidate':'+ إضافة مرشح','Search name, phone or job':'ابحث بالاسم أو الهاتف أو الوظيفة','All':'الكل','New':'جديد','Contacted':'تم التواصل','Interview':'مقابلة','Accepted':'مقبول','Hired':'تم التوظيف','Rejected':'مرفوض','No answer':'لا رد','Phone':'الهاتف','Age':'العمر','Overnight shift':'وردية ليلية','Offer':'العرض','Voice note':'ملاحظة صوتية','Save':'حفظ','Delete':'حذف','WhatsApp':'واتساب','Yes':'نعم','No':'لا','Feedback':'ملاحظات','Post':'نشر','Generate invite':'إنشاء دعوة','Copy':'نسخ','Add':'إضافة','Offers':'العروض','Submit candidate':'إرسال المرشح','Cancel':'إلغاء','Saved':'تم الحفظ','Copied':'تم النسخ','Owner':'المالك','Recruiter':'مجند','Used':'مستخدم','Unused':'غير مستخدم','Remove':'إزالة','Alerts':'التنبيهات','Voice note of':'ملاحظة صوتية لـ','Search...':'بحث...','by':'بواسطة'};
-let lang=localStorage.lang||'en',me=null,sess=null,tab='c',flt='All',q='',showForm=false,D={c:[],t:[],o:[],n:[],i:[],a:[]},authMode='in',aq='',ch=null;
+const AR={'Log in':'تسجيل الدخول','Sign up':'إنشاء حساب','Log out':'خروج','Email':'البريد الإلكتروني','Password':'كلمة المرور','Finish setup':'إكمال الإعداد','Full name':'الاسم الكامل','Invite code':'رمز الدعوة','Candidates':'المرشحون','Team':'الفريق','News':'الأخبار','Invites':'الدعوات','+ Add candidate':'+ إضافة مرشح','Search name, phone or job':'ابحث بالاسم أو الهاتف أو الوظيفة','All':'الكل','New':'جديد','Contacted':'تم التواصل','Interview':'مقابلة','Accepted':'مقبول','Hired':'تم التوظيف','Rejected':'مرفوض','No answer':'لا رد','Phone':'الهاتف','Age':'العمر','Overnight shift':'وردية ليلية','Offer':'العرض','Voice note':'ملاحظة صوتية','Save':'حفظ','Delete':'حذف','WhatsApp':'واتساب','Yes':'نعم','No':'لا','Feedback':'ملاحظات','Post':'نشر','Generate invite':'إنشاء دعوة','Copy':'نسخ','Add':'إضافة','Offers':'العروض','Submit candidate':'إرسال المرشح','Cancel':'إلغاء','Saved':'تم الحفظ','Copied':'تم النسخ','Owner':'المالك','Recruiter':'مجند','Used':'مستخدم','Unused':'غير مستخدم','Remove':'إزالة','Alerts':'التنبيهات','Voice note of':'ملاحظة صوتية لـ','Search...':'بحث...','by':'بواسطة','Work':'العمل','Comment':'تعليق','Send':'إرسال','Next step':'الخطوة التالية'};
+let lang=localStorage.lang||'en',me=null,sess=null,tab='c',flt='All',q='',showForm=false,D={c:[],t:[],o:[],n:[],i:[],a:[],l:[],m:[]},authMode='in',aq='',ch=null,view='w';
 const t=k=>lang==='ar'&&AR[k]||k;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=s=>document.querySelector(s);
@@ -64,7 +69,7 @@ async function boot(){
 }
 sb.auth.onAuthStateChange((e)=>{if(e==='SIGNED_IN'||e==='SIGNED_OUT')boot()});
 async function load(){
-  const[c,tm,o,n,al]=await Promise.all([sb.from('candidates').select('*').order('created_at',{ascending:false}),sb.from('profiles').select('*').order('created_at'),sb.from('offers').select('*').order('id'),sb.from('news').select('*').order('created_at',{ascending:false}),sb.from('notifications').select('*').order('id',{ascending:false}).limit(100)]);D.a=al.data||[];
+  const[c,tm,o,n,al,lk,cm]=await Promise.all([sb.from('candidates').select('*').order('created_at',{ascending:false}),sb.from('profiles').select('*').order('created_at'),sb.from('offers').select('*').order('id'),sb.from('news').select('*').order('created_at',{ascending:false}),sb.from('notifications').select('*').order('id',{ascending:false}).limit(100),sb.from('post_likes').select('*'),sb.from('post_comments').select('*').order('id')]);D.a=al.data||[];D.l=lk.data||[];D.m=cm.data||[];
   D.c=c.data||[];D.t=tm.data||[];D.o=o.data||[];D.n=n.data||[];
   if(owner()){const i=await sb.from('invites').select('*').order('created_at',{ascending:false});D.i=i.data||[]}
 }
@@ -77,10 +82,10 @@ function render(){
     $('#go').onclick=async()=>{const f={email:$('#em').value.trim(),password:$('#pw').value};const r=authMode==='in'?await sb.auth.signInWithPassword(f):await sb.auth.signUp(f);if(r.error)$('#er').textContent=r.error.message;else if(authMode==='up'&&!r.data.session)$('#er').textContent='Check your email to confirm, then log in.'};return}
   if(!me){a.innerHTML=`<div class="card"><h2>${t('Finish setup')}</h2><label>${t('Full name')}</label><input id="fn"><label>${t('Invite code')}</label><input id="ic" autocapitalize="characters"><p class="meta">Leave the code empty only if you are the first account (the owner).</p><div class="msg" id="er"></div><button class="p" id="go">${t('Finish setup')}</button></div>`;
     $('#go').onclick=async()=>{const{error}=await sb.rpc('finish_setup',{p_name:$('#fn').value.trim(),p_code:$('#ic').value.trim().toUpperCase()});if(error)$('#er').textContent=error.message;else boot()};return}
-  const un=tab==='a'?0:D.a.filter(x=>x.id>(+localStorage.seen||0)).length;const tabs=[['c',`${t('Candidates')} (${D.c.length})`],['t',`${t('Team')} (${D.t.length})`],['a',`🔔 ${t('Alerts')}${un?` (${un})`:''}`],['n',t('News')]];if(owner())tabs.push(['i',t('Invites')]);
-  a.innerHTML=`<div class="tabs">${tabs.map(x=>`<button data-t="${x[0]}" class="${tab===x[0]?'on':''}">${x[1]}</button>`).join('')}</div><div id="pane"></div>`;
+  const un=tab==='a'?0:D.a.filter(x=>x.id>(+localStorage.seen||0)).length;const tabs=[['c',`${t('Candidates')} (${D.c.length})`],['t',`${t('Team')} (${D.t.length})`],['a',`🔔 ${t('Alerts')}${un?` (${un})`:''}`],];if(owner())tabs.push(['i',t('Invites')]);
+  a.innerHTML=`<div class="seg"><button data-v="w" class="${view==='w'?'on':''}">🧭 ${t('Work')}</button><button data-v="f" class="${view==='f'?'on':''}">📰 ${t('News')}</button></div><div class="pages${view==='f'?' f':''}" id="pg"><section class="pg"><div class="tabs">${tabs.map(x=>`<button data-t="${x[0]}" class="${tab===x[0]?'on':''}">${x[1]}</button>`).join('')}</div><div id="pane"></div></section><section class="pg" id="pf"></section></div>`;
   a.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;showForm=false;render()});
-  ({c:paneC,t:paneT,a:paneA,n:paneN,i:paneI})[tab]();
+  ({c:paneC,t:paneT,a:paneA,i:paneI})[tab]();paneF();bindPages();
 }
 
 /* ---------- Candidates ---------- */
@@ -128,28 +133,73 @@ function list(){
   L.querySelectorAll('.cc').forEach(bindCard);
 }
 function cardHTML(c){
+  const ao=c.approved_offers||[],mine=owner()||c.recruiter_id===me.id;
+  const s2=['Accepted','Interview','Hired'].includes(c.status)&&ao.length>0,rj=c.status==='Rejected';
+  const cur=!s2&&!rj?2:!c.form_done?3:!c.shot_url?4:5;
+  const stp=[['1','Voice note',1],['2','Validation',s2||rj],['3','Form',c.form_done],['4','Screenshot',c.shot_url]].map((x,i)=>`<span class="${x[2]?'done':cur===i+1?'cur':''}">${x[0]}. ${x[1]}</span>`).join('');
+  const off=n=>D.o.find(x=>x.name===n)||{};
+  let act='';
+  if(mine){
+    if(rj)act=`<div class="meta">❌ ${t('Rejected')}</div>`;
+    else if(!s2)act=`<div class="meta">⏳ Waiting for validation (step 2)</div>`;
+    else if(!c.form_done){const ls=ao.map(o=>{const f=safe(off(o).form_link);return f?`<a class="lk" href="${esc(f)}" target="_blank" rel="noopener">📝 ${esc(o)}</a>`:''}).join(' ');
+      act=`<div class="meta">Step 3 — fill the application form${ls?'':' (no link set for this offer yet)'}</div><div class="chips">${ls}<button class="p fd">✔ I filled the form</button></div>`}
+    else if(!c.shot_url){const tp=safe(ao.map(o=>off(o).template_url).find(Boolean));
+      act=`<div class="meta">Step 4 — send a screenshot like this template:</div>${tp?`<img class="tpl" src="${esc(tp)}" alt="template">`:''}<input type="file" class="sf" accept="image/*"><div style="margin-top:8px"><button class="p ss">Send screenshot</button></div>`}
+    else act=`<div class="meta">✅ All steps complete · <a class="lk" href="${esc(c.shot_url)}" target="_blank" rel="noopener">Screenshot</a></div>`;
+  }
+  const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>
+<div class="chips acc" style="display:${['Accepted','Interview','Hired'].includes(c.status)?'flex':'none'}">${D.o.filter(o=>o.active||ao.includes(o.name)).map(o=>`<button data-o="${esc(o.name)}" class="${ao.includes(o.name)?'on':''}">${esc(o.name)}</button>`).join('')}</div>
+<textarea rows="2" placeholder="${t('Feedback')}">${esc(c.feedback||'')}</textarea>`:(c.feedback?`<div class="meta">💬 ${esc(c.feedback)}</div>`:'');
   return`<div class="card cc" data-id="${c.id}" data-st="${c.status}"><div class="row"><b style="font-size:18px">${esc(c.full_name)}</b><span class="badge ${c.status}">${t(c.status)}</span></div>
-<div class="meta">${c.phone?`<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · `:''}${esc(c.email||'')}<br>${t('Age')}: ${c.age||'-'} · ${t('Overnight shift')}: ${c.overnight?t('Yes'):t('No')} · ${t('Offer')}: ${esc(c.offer||'-')}<br>${esc(c.recruiter_name||'')} · ${new Date(c.created_at).toLocaleDateString()}</div>
-${c.voice_url?`<audio controls preload="none" src="${esc(c.voice_url)}"></audio>`:''}
-<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>
-<div class="chips acc" style="display:${c.status==='Accepted'||c.status==='Hired'?'flex':'none'}">${D.o.filter(o=>o.active||(c.approved_offers||[]).includes(o.name)).map(o=>`<button data-o="${esc(o.name)}" class="${(c.approved_offers||[]).includes(o.name)?'on':''}">${esc(o.name)}</button>`).join('')}</div>
-<textarea rows="2" placeholder="${t('Feedback')}">${esc(c.feedback||'')}</textarea>
-<div class="row" style="margin-top:10px"><span><button class="p sv">${t('Save')}</button> <button class="w">${t('WhatsApp')}</button></span><button class="d dl">${t('Delete')}</button></div></div>`}
+<div class="steps">${stp}</div>
+<div class="meta">${c.phone?`<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · `:''}${esc(c.email||'')}<br>${t('Age')}: ${c.age||'-'} · ${t('Overnight shift')}: ${c.overnight?t('Yes'):t('No')} · ${t('Offer')}: ${esc(c.offer||'-')}${ao.length?' → '+esc(ao.join(' · ')):''}<br>${esc(c.recruiter_name||'')} · ${new Date(c.created_at).toLocaleDateString()}</div>
+${c.voice_url?`<audio controls preload="none" src="${esc(c.voice_url)}"></audio>`:''}${act}${ow}
+<div class="row" style="margin-top:10px"><span>${owner()?`<button class="p sv">${t('Save')}</button> `:''}<button class="w">${t('WhatsApp')}</button></span>${mine?`<button class="d dl">${t('Delete')}</button>`:''}</div></div>`}
 function bindCard(el){
   const c=D.c.find(x=>x.id===el.dataset.id);
-  el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{el.dataset.st=b.dataset.s;el.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x===b));el.querySelector('.acc').style.display=['Accepted','Hired'].includes(b.dataset.s)?'flex':'none'});
+  el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{el.dataset.st=b.dataset.s;el.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x===b));el.querySelector('.acc').style.display=['Accepted','Interview','Hired'].includes(b.dataset.s)?'flex':'none'});
   el.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
   el.querySelector('.w').onclick=()=>wa(c);
-  el.querySelector('.sv').onclick=async()=>{
-    const ap=['Accepted','Hired'].includes(el.dataset.st)?[...el.querySelectorAll('[data-o].on')].map(b=>b.dataset.o):[];
+  const fd=el.querySelector('.fd');if(fd)fd.onclick=async()=>{const{error}=await sb.from('candidates').update({form_done:true}).eq('id',c.id);if(error)return toast(error.message);await load();render();toast(t('Saved'))};
+  const ss=el.querySelector('.ss');if(ss)ss.onclick=async()=>{const f=el.querySelector('.sf').files[0];if(!f)return toast('Choose a screenshot first');ss.disabled=true;
+    const path=`${sess.user.id}/shot-${Date.now()}-${f.name.replace(/[^\w.\-]/g,'_')}`;const u=await sb.storage.from('voice-notes').upload(path,f);if(u.error){ss.disabled=false;return toast(u.error.message)}
+    const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await sb.from('candidates').update({shot_path:path,shot_url:url}).eq('id',c.id);if(error){ss.disabled=false;return toast(error.message)}await load();render();toast(t('Saved'))};
+  if(el.querySelector('.sv'))el.querySelector('.sv').onclick=async()=>{
+    const ap=['Accepted','Interview','Hired'].includes(el.dataset.st)?[...el.querySelectorAll('[data-o].on')].map(b=>b.dataset.o):[];
     const{error}=await sb.from('candidates').update({status:el.dataset.st,approved_offers:ap,feedback:el.querySelector('textarea').value}).eq('id',c.id);
     if(error)return toast(error.message);await load();render();toast(t('Saved'))};
-  el.querySelector('.dl').onclick=async()=>{
+  if(el.querySelector('.dl'))el.querySelector('.dl').onclick=async()=>{
     if(!confirm(t('Delete')+' '+c.full_name+'?'))return;
     if(c.voice_path)await sb.storage.from('voice-notes').remove([c.voice_path]);
     const{error}=await sb.from('candidates').delete().eq('id',c.id);if(error)return toast(error.message);await load();render()};
 }
 
+const safe=u=>/^https?:\/\//i.test(u||'')?u:'';
+const acts=n=>{if(!['Accepted','Interview','Hired'].includes(n.status)||!(n.offers||[]).length||(n.feedback||'').startsWith('Step'))return'';
+  const mine=D.c.some(c=>c.id===n.candidate_id);
+  return`<div class="chips" style="margin-top:8px">${n.offers.map(o=>{const f=safe((D.o.find(x=>x.name===o)||{}).form_link);return f?`<a class="lk" href="${esc(f)}" target="_blank" rel="noopener">📝 ${esc(o)}</a>`:''}).join('')}${mine?`<button class="p" data-go="${esc(n.candidate_name)}">${t('Next step')} →</button>`:''}</div>`};
+function setView(v){view=v;const g=$('#pg');if(g)g.classList.toggle('f',v==='f');document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
+function bindPages(){document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>setView(b.dataset.v));const g=$('#pg');let x0=0,y0=0;
+  g.ontouchstart=e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY};
+  g.ontouchend=e=>{const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;if(Math.abs(dx)<80||Math.abs(dy)>50)return;const d=document.documentElement.dir==='rtl'?-1:1;setView(dx*d<0?'f':'w')}}
+/* ---------- News feed (likes + comments) ---------- */
+function paneF(){
+  const el=$('#pf');
+  el.innerHTML=`<h2>📰 ${t('News')}</h2>`+(owner()?`<div class="card"><textarea id="nb" rows="3" placeholder="${t('Post')}…"></textarea><div style="margin-top:10px"><button class="p" id="np">${t('Post')}</button></div></div>`:'')+
+  (D.n.map(n=>{const lk=D.l.filter(x=>x.post_id===n.id),liked=lk.some(x=>x.user_id===sess.user.id),cm=D.m.filter(x=>x.post_id===n.id);
+    return`<div class="card" data-p="${n.id}"><div class="meta"><b style="color:var(--tx)">${esc(n.author||'')}</b> · ${new Date(n.created_at).toLocaleString()}</div><div style="white-space:pre-wrap;margin:8px 0">${esc(n.body)}</div>
+<div class="row"><span><button class="lk2 ${liked?'p':''}">👍 ${lk.length}</button> <span class="meta">💬 ${cm.length}</span></span>${owner()?`<button class="d" data-n="${n.id}">${t('Delete')}</button>`:''}</div>
+${cm.map(m=>`<div class="meta" style="margin-top:8px"><b style="color:var(--tx)">${esc(m.author)}</b>: ${esc(m.body)}${owner()||m.user_id===sess.user.id?` <a href="#" data-dc="${m.id}">×</a>`:''}</div>`).join('')}
+<div class="row" style="margin-top:10px;flex-wrap:nowrap"><input class="ci" placeholder="${t('Comment')}…"><button class="cb">${t('Send')}</button></div></div>`}).join('')||'<div class="empty">—</div>');
+  if(owner()){$('#np').onclick=async()=>{const b=$('#nb').value.trim();if(!b)return;await sb.from('news').insert({body:b,author:me.full_name});await load();render()};
+    el.querySelectorAll('[data-n]').forEach(b=>b.onclick=async()=>{if(!confirm('?'))return;await sb.from('news').delete().eq('id',b.dataset.n);await load();render()})}
+  el.querySelectorAll('[data-p]').forEach(card=>{const id=+card.dataset.p;
+    card.querySelector('.lk2').onclick=async()=>{const liked=D.l.some(x=>x.post_id===id&&x.user_id===sess.user.id);await(liked?sb.from('post_likes').delete().match({post_id:id,user_id:sess.user.id}):sb.from('post_likes').insert({post_id:id}));await load();render()};
+    const go=async()=>{const v=card.querySelector('.ci').value.trim();if(!v)return;await sb.from('post_comments').insert({post_id:id,author:me.full_name,body:v});await load();render()};
+    card.querySelector('.cb').onclick=go;card.querySelector('.ci').onkeydown=e=>{if(e.key==='Enter')go()}});
+  el.querySelectorAll('[data-dc]').forEach(a=>a.onclick=async e=>{e.preventDefault();await sb.from('post_comments').delete().eq('id',a.dataset.dc);await load();render()});
+}
 /* ---------- Alerts (live) ---------- */
 const EM={New:'⏳',Contacted:'📞',Interview:'🎤',Accepted:'✅',Hired:'🏆',Rejected:'❌','No answer':'📵'};
 function live(){if(ch)return;ch=sb.channel('nt').on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},async p=>{const n=p.new;await load();if(!document.activeElement.matches('textarea,input'))render();if(tab!=='a')toast(`${EM[n.status]||'🔔'} ${n.candidate_name}: ${t(n.status)}`)}).subscribe()}
@@ -161,8 +211,8 @@ function paneA(){
     $('#al').innerHTML=r.length?r.map(n=>{const d=new Date(n.created_at);
       const w=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' at '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       const o=(n.offers&&n.offers.length)?n.offers.join(' · '):(n.offer||'');
-      return `<div class="card nt ${esc(n.status)}"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><b>${EM[n.status]||'🔔'} ${t('Voice note of')} ${esc(n.candidate_name)}: ${t(n.status)}</b><span class="meta" style="white-space:nowrap">${w}</span></div><div class="meta">${esc(o)}</div>${n.feedback?`<div>${esc(n.feedback)}</div>`:''}<div class="meta">${t('by')} ${esc(n.actor_name||'')}</div></div>`}).join(''):'<div class="empty">—</div>'};
-  $('#as').oninput=e=>{aq=e.target.value;draw()};draw();
+      return `<div class="card nt ${esc(n.status)}"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><b>${EM[n.status]||'🔔'} ${t('Voice note of')} ${esc(n.candidate_name)}: ${t(n.status)}</b><span class="meta" style="white-space:nowrap">${w}</span></div><div class="meta">${esc(o)}</div>${n.feedback?`<div>${esc(n.feedback)}</div>`:''}<div class="meta">${t('by')} ${esc(n.actor_name||'')}</div>${acts(n)}</div>`}).join(''):'<div class="empty">—</div>'};
+  $('#al').onclick=e=>{const b=e.target.closest('[data-go]');if(b){q=b.dataset.go;flt='All';tab='c';view='w';render()}};$('#as').oninput=e=>{aq=e.target.value;draw()};draw();
 }
 
 /* ---------- Team ---------- */
@@ -182,9 +232,11 @@ function paneN(){
 function paneI(){
   $('#pane').innerHTML=`<div class="card"><button class="p" id="gi">${t('Generate invite')}</button></div>`+
   D.i.map(i=>`<div class="card"><div class="row"><b style="letter-spacing:2px;font-size:20px">${esc(i.code)}</b><span class="badge">${t(i.used_by?'Used':'Unused')}</span></div>${i.used_by?'':`<button data-c="${esc(i.code)}" style="margin-top:8px">${t('Copy')}</button>`}</div>`).join('')+
-  `<div class="card"><h2>${t('Offers')}</h2><div class="row" style="flex-wrap:nowrap"><input id="on"><button class="p" id="oa">${t('Add')}</button></div><div style="margin-top:12px">${D.o.map(o=>`<div class="row" style="margin:6px 0"><span style="opacity:${o.active?1:.45}">${esc(o.name)}</span><span><button data-ot="${o.id}">${o.active?'On':'Off'}</button> <button class="d" data-od="${o.id}">×</button></span></div>`).join('')}</div></div>`;
+  `<div class="card"><h2>${t('Offers')}</h2><div class="row" style="flex-wrap:nowrap"><input id="on"><button class="p" id="oa">${t('Add')}</button></div><div style="margin-top:12px">${D.o.map(o=>`<div class="row" style="margin:6px 0"><span style="opacity:${o.active?1:.45}">${esc(o.name)} ${o.form_link?'🔗':''}${o.template_url?'🖼':''}</span><span><button data-ol="${o.id}">🔗</button> <button data-oi="${o.id}">🖼</button> <button data-ot="${o.id}">${o.active?'On':'Off'}</button> <button class="d" data-od="${o.id}">×</button></span></div>`).join('')}</div></div>`;
   $('#gi').onclick=async()=>{const code=Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b%32]).join('');const{error}=await sb.from('invites').insert({code,created_by:me.id});if(error)return toast(error.message);await load();render()};
   document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(b.dataset.c);toast(t('Copied'))});
+  document.querySelectorAll('[data-ol]').forEach(b=>b.onclick=async()=>{const o=D.o.find(x=>x.id==b.dataset.ol);const v=prompt('Application form link for '+o.name+' (https://...)',o.form_link||'');if(v===null)return;if(v&&!/^https?:\/\//i.test(v))return toast('Link must start with https://');await sb.from('offers').update({form_link:v||null}).eq('id',o.id);await load();render()});
+  document.querySelectorAll('[data-oi]').forEach(b=>b.onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=async()=>{const f=i.files[0];if(!f)return;const path='template/'+Date.now()+'-'+f.name.replace(/[^\w.\-]/g,'_');const u=await sb.storage.from('voice-notes').upload(path,f);if(u.error)return toast(u.error.message);await sb.from('offers').update({template_url:sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl}).eq('id',b.dataset.oi);await load();render();toast(t('Saved'))};i.click()});
   $('#oa').onclick=async()=>{const n=$('#on').value.trim();if(!n)return;await sb.from('offers').insert({name:n});await load();render()};
   document.querySelectorAll('[data-ot]').forEach(b=>b.onclick=async()=>{const o=D.o.find(x=>x.id==b.dataset.ot);await sb.from('offers').update({active:!o.active}).eq('id',o.id);await load();render()});
   document.querySelectorAll('[data-od]').forEach(b=>b.onclick=async()=>{await sb.from('offers').delete().eq('id',b.dataset.od);await load();render()});
