@@ -205,7 +205,7 @@ function bindCard(el){
 const safe=u=>/^https?:\/\//i.test(u||'')?u:'';
 const acts=n=>{if(!['Accepted','Interview','Hired'].includes(n.status)||!(n.offers||[]).length||(n.feedback||'').startsWith('Step'))return'';
   const mine=D.c.some(c=>c.id===n.candidate_id);
-  return`<div class="chips" style="margin-top:8px">${mine?`<button class="p" data-go="${esc(n.candidate_id)}">${t('Next step')} →</button>`:''}</div>`};
+  return`<div class="chips" style="margin-top:8px">${mine?`<button type="button" class="p" data-go="${esc(n.candidate_id)}">${t('Next step')} →</button>`:''}</div>`};
 function setView(v){view=v;const g=$('#pg');if(g)g.classList.toggle('f',v==='f');document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
 function bindPages(){document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>setView(b.dataset.v));const g=$('#pg');let x0=0,y0=0;
   g.ontouchstart=e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY};
@@ -238,8 +238,12 @@ function paneA(){
     $('#al').innerHTML=r.length?r.map(n=>{const d=new Date(n.created_at);
       const w=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' at '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       const o=(n.offers&&n.offers.length)?n.offers.join(' · '):(n.offer||'');
-      return `<div class="card nt ${esc(n.status)}"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><b>${EM[n.status]||'🔔'} ${t('Voice note of')} ${esc(n.candidate_name)}: ${t(n.status)}</b><span class="meta" style="white-space:nowrap">${w}</span></div><div class="meta">${esc(o)}</div>${n.feedback?`<div>${esc(n.feedback)}</div>`:''}<div class="meta">${t('by')} ${esc(n.actor_name||'')}</div>${acts(n)}</div>`}).join(''):'<div class="empty">—</div>'};
-  $('#al').onclick=e=>{const b=e.target.closest('[data-go]');if(b){flowId=b.dataset.go;flowStep=1;render()}};$('#as').oninput=e=>{aq=e.target.value;draw()};draw();
+      return `<div class="card nt ${esc(n.status)}"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><b>${EM[n.status]||'🔔'} ${t('Voice note of')} ${esc(n.candidate_name)}: ${t(n.status)}</b><span class="meta" style="white-space:nowrap">${w}</span></div><div class="meta">${esc(o)}</div>${n.feedback?`<div>${esc(n.feedback)}</div>`:''}<div class="meta">${t('by')} ${esc(n.actor_name||'')}</div>${acts(n)}</div>`}).join(''):'<div class="empty">—</div>';
+    $('#al').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>openFlow(b.dataset.go));
+  };
+  const openFlow=id=>{if(!D.c.some(c=>c.id===id))return toast('Candidate is not available for this account');flowId=id;flowStep=1;render()};
+  $('#as').oninput=e=>{aq=e.target.value;draw()};
+  draw();
 }
 
 /* ---------- Team ---------- */
