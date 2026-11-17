@@ -146,6 +146,7 @@ begin
   end if;
   return new;
 end $$;
+drop trigger if exists trg_steps on candidates;
 create trigger trg_steps before update on candidates for each row execute function enforce_steps();
 
 -- Alerts also fire when step 3 / step 4 are completed
@@ -177,6 +178,9 @@ begin
   end if;
   return new;
 end $$;
+drop trigger if exists trg_notify on candidates;
+drop trigger if exists trg_notify_steps on candidates;
+create trigger trg_notify after insert or update on candidates for each row execute function notify_candidate();
 
 
 
