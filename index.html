@@ -143,7 +143,7 @@ function cardHTML(c){
   if(mine){
     if(rj)act=`<div class="meta">❌ ${t('Rejected')}</div>`;
     else if(!s2)act=`<div class="meta">⏳ Waiting for validation (step 2)</div>`;
-    else if(!c.form_done){const ls=ao.map(o=>{const f=safe(off(o).form_link);return f?`<a class="lk" href="${esc(f)}" target="_blank" rel="noopener">📝 ${esc(o)}</a>`:''}).join(' ');
+    else if(!c.form_done){const ls=ao.map(o=>{const f=formUrl(off(o));return f?`<a class="lk" href="${esc(f)}" target="_blank" rel="noopener">📝 ${esc(o)}</a>`:''}).join(' ');
       act=`<div class="meta">Step 3 — fill the application form${ls?'':' (no link set for this offer yet)'}</div><div class="chips">${ls}<button class="p fd">✔ I filled the form</button></div>`}
     else if(!c.shot_url){const tp=safe(ao.map(o=>off(o).template_url).find(Boolean));
       act=`<div class="meta">Step 4 — send a screenshot like this template:</div>${tp?`<img class="tpl" src="${esc(tp)}" alt="template">`:''}<input type="file" class="sf" accept="image/*"><div style="margin-top:8px"><button class="p ss">Send screenshot</button></div>`}
@@ -162,7 +162,7 @@ function renderFlow(){
   if(!c){flowId=null;history.replaceState(null,'',location.pathname+location.search);return render()}
   const offers=(c.approved_offers||[]).map(n=>D.o.find(o=>o.name===n)||{name:n});
   const templates=offers.map(o=>safe(o.template_url)).filter(Boolean);
-  const links=offers.map(o=>safe(o.form_link)).filter(Boolean);
+  const links=offers.map(formUrl).filter(Boolean);
   const a=$('#app');
   if(flowStep===1){
     a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Application form</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Open the application form, complete it, then press Next.</p>${links.length?links.map((u,i)=>`<p><a class="lk" href="${esc(u)}" target="_blank" rel="noopener">📝 Open application form${links.length>1?' '+(i+1):''}</a></p>`).join(''):'<p class="meta">No application form link has been added for this offer yet.</p>'}<button class="p" id="next">Next →</button></div>`;
@@ -202,7 +202,9 @@ function bindCard(el){
     const{error}=await sb.from('candidates').delete().eq('id',c.id);if(error)return toast(error.message);await load();render()};
 }
 
+const INTERVIEW_FORM_URL='https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform';
 const safe=u=>/^https?:\/\//i.test(u||'')?u:'';
+const formUrl=o=>safe(o.form_link)||INTERVIEW_FORM_URL;
 function openCandidateFlow(id){
   if(!D.c.some(c=>c.id===id))return toast('Candidate is not available for this account');
   flowId=id;flowStep=1;history.replaceState(null,'',`#candidate/${encodeURIComponent(id)}`);render();

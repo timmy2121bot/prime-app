@@ -2,6 +2,38 @@
 alter table candidates add column if not exists form_done boolean default false, add column if not exists shot_path text, add column if not exists shot_url text;
 alter table offers add column if not exists form_link text, add column if not exists template_url text;
 
+insert into offers(name, form_link) values
+  ('TPro Talabat Account — Customer Service Representatives – TPro Talabat Account', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Teleperformance — Airline', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('CENTRO — Customer services', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Enable — French Monolingual Call Center Agent', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Teleperformance — Back Office Account', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('WGs — Solar Florida – Experienced Cold Caller (Remote)', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('TTEC — TTEC German Account Outbound Sales Exp', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('TTEC — TTEC French Account CS Exp', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('TTEC — French Account Outbound Sales Exp', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('TTEC — TTEC Spanish Account CS Exp', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('TTEC — TTEC Spanish Account Outbound Sales Exp', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('TTEC — English Customer Service Representative', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('TTEC — TTEC English Account Outbound sales Exp', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Atian/IGT — German Back Office Specialist', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Atian/IGT — ATAIN German Travel Account Bilingual (GDS Exp)', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Atian/IGT — Atain French Travel Advisor (GDS exp)', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Atian/IGT — Atain English Travel Advisor (GDS exp)', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Teleperformance — TP Technical Support French account (Voice)', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Teleperformance — TP Customer Service French account (Canadian Account)', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('Teleperformance — Call Center Representative', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('LTS — Hotel Surveys — Outbound', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('LTS — Sales Agent — Inbound Vacation Packages', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('TTC — Telesales Agent — US Accounts', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('LPM — Sales Agent — Telesales', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('LeadBull — Canadian Telesales Account', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('ACES — Telesales Agent', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('O4U — Female HR Generalist', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('O4U — Telesales', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
+  ('O4U — TEAM LEADER OPPORTUNITY', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform')
+on conflict (name) do update set form_link = excluded.form_link;
+
 create table post_likes(post_id bigint references news(id) on delete cascade, user_id uuid references profiles(id) on delete cascade default auth.uid(), primary key(post_id,user_id));
 create table post_comments(id bigserial primary key, post_id bigint references news(id) on delete cascade, user_id uuid default auth.uid(), author text, body text not null, created_at timestamptz default now());
 alter table post_likes enable row level security;
