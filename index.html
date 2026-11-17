@@ -139,12 +139,12 @@ function cardHTML(c){
   const ao=c.approved_offers||[],mine=owner()||c.recruiter_id===me.id;
   const workflows=ao.map(n=>workflowFor(D.o.find(x=>x.name===n)||{name:n}));
   const kinds=workflows.map(workflowKind),hasSite=kinds.includes('site'),hasCall=kinds.includes('call'),hasOnline=kinds.includes('online');
-  const draft=workflowDraft(c.id),siteConfirmed=c.site_confirmed||draft.site_confirmed||false;
+  const draft=workflowDraft(c.id);
   const noScreenshot=!hasSite;
   const s2=['Accepted','Interview','Hired'].includes(c.status)&&ao.length>0,rj=c.status==='Rejected';
   const completeFinal=noScreenshot&&c.form_done;
-  const cur=!s2&&!rj?2:!c.form_done?3:hasSite&&!siteConfirmed?4:hasSite&&!c.shot_url?5:6;
-  const defs=hasSite?[['1','Voice note',1],['2','Validation',s2||rj],['3','Form',c.form_done],['4','Company approval',siteConfirmed],['5','Screenshot',c.shot_url]]:[['1','Voice note',1],['2','Validation',s2||rj],['3','Form',c.form_done],['4',hasCall?'Call interview':'Interview instruction',completeFinal]];
+  const cur=!s2&&!rj?2:!c.form_done?3:hasSite&&!c.shot_url?4:5;
+  const defs=hasSite?[['1','Voice note',1],['2','Validation',s2||rj],['3','Form',c.form_done],['4','Screenshot',c.shot_url]]:[['1','Voice note',1],['2','Validation',s2||rj],['3','Form',c.form_done],['4',hasCall?'Call interview':'Interview instruction',completeFinal]];
   const stp=defs.map((x,i)=>`<span class="${x[2]?'done':cur===i+1?'cur':''}">${x[0]}. ${x[1]}</span>`).join('');
   const off=n=>D.o.find(x=>x.name===n)||{};
   let act='';
@@ -154,12 +154,11 @@ function cardHTML(c){
     else if(!c.form_done){const ls=ao.map(o=>{const f=formUrl(off(o));return f?`<a class="lk" href="${esc(f)}" target="_self">📝 ${esc(o)}</a>`:''}).join(' ');
       act=`<div class="meta">Step 3 — fill the application form${ls?'':' (no link set for this offer yet)'}</div><div class="chips">${ls}<button class="p fd">✔ I filled the form</button></div>`}
     else if(noScreenshot)act=`<div class="meta">✅ ${hasCall?'Call interview': 'Online interview'} — no screenshot upload is required.</div>`;
-    else if(!siteConfirmed)act=`<div class="meta">⏳ Your application was sent to the company. Please wait for confirmation from Prime before going to the interview.</div>`;
     else if(!c.shot_url){const tp=safe(ao.map(o=>off(o).template_url).find(Boolean));
       act=`<div class="meta">Step 4 — send a screenshot like this template:</div>${tp?`<img class="tpl" src="${esc(tp)}" alt="template">`:''}<input type="file" class="sf" accept="image/*"><div style="margin-top:8px"><button class="p ss">Send screenshot</button></div>`}
     else act=`<div class="meta">✅ Screenshot uploaded · <a class="lk" href="${esc(c.shot_url)}" target="_blank" rel="noopener">Open screenshot</a></div><div class="meta">${c.attendance_status==='confirmed'?'✅ Confirmed to attend':c.attendance_status==='reschedule'?'⚠️ Reschedule requested':'⏳ Awaiting attendance confirmation'}</div>`;
   }
-  const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>${hasSite&&!siteConfirmed&&c.form_done?`<div class="chips"><button data-site-confirm="1">✅ Company approved — release interview details</button></div>`:''}${c.shot_url?`<div class="chips"><button data-att="confirmed" class="${c.attendance_status==='confirmed'?'on':''}">✅ Confirmed</button><button data-att="reschedule" class="${c.attendance_status==='reschedule'?'on':''}">⚠️ Needs reschedule</button></div>`:''}
+  const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>${c.shot_url?`<div class="chips"><button data-att="confirmed" class="${c.attendance_status==='confirmed'?'on':''}">✅ Confirmed to attend</button><button data-att="reschedule" class="${c.attendance_status==='reschedule'?'on':''}">❌ Not confirmed / needs reschedule</button></div>`:''}
 <div class="chips acc" style="display:${['Accepted','Interview','Hired'].includes(c.status)?'flex':'none'}">${D.o.filter(o=>o.active||ao.includes(o.name)).map(o=>`<button data-o="${esc(o.name)}" class="${ao.includes(o.name)?'on':''}">${esc(o.name)}</button>`).join('')}</div>
 <textarea rows="2" placeholder="${t('Feedback')}">${esc(c.feedback||'')}</textarea>`:(c.feedback?`<div class="meta">💬 ${esc(c.feedback)}</div>`:'');
   return`<div class="card cc" data-id="${c.id}" data-st="${c.status}"><div class="row"><b style="font-size:18px">${esc(c.full_name)}</b><span class="badge ${c.status}">${t(c.status)}</span></div>
@@ -191,7 +190,6 @@ function renderFlow(){
   }
   if(hasCall||hasOnline){const label=hasCall?'Call interview':'Online interview';a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">${label}</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><pre class="confirm-msg">${esc(workflows[0].confirmation_template||label+'.')}</pre><p class="meta">✅ This step is complete. No screenshot upload is required.</p></div>`;$('#back').onclick=()=>{flowId=null;history.replaceState(null,'',location.pathname+location.search);render()};return}
   const siteConfirmed=c.site_confirmed||workflowDraft(c.id).site_confirmed||false;
-  if(!siteConfirmed){a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Waiting for Prime confirmation</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Please wait for Prime to confirm that the company has approved sending you to the site interview. Do not go before you receive that confirmation.</p></div>`;$('#back').onclick=()=>{flowId=null;history.replaceState(null,'',location.pathname+location.search);render()};return}
   const template=templates[0];
   const draft=workflowDraft(c.id),savedDate=c.interview_date||draft.interview_date,savedTime=c.interview_time||draft.interview_time;
   const message=workflowMessage(workflows[0],c,savedDate,savedTime);
