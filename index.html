@@ -94,8 +94,7 @@ const SB_URL='https://tsilwwnjdqzeiwgfdzip.supabase.co', SB_KEY='sb_publishable_
 if(!/^https:\/\/[^ ]+\.supabase\.co/.test(SB_URL)||SB_KEY.startsWith('YOUR_')){document.getElementById('app').innerHTML='<div class="card"><h2>Setup needed</h2><p class="meta">Open index.html in a text editor, paste your Supabase Project URL and anon key into SB_URL and SB_KEY near the top of the script, save, then refresh.</p></div>';throw new Error('Missing Supabase keys')}
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const STORAGE_BUCKET='voice-notes';
-const WHATSAPP_RECRUITER_GROUP='https://chat.whatsapp.com/EnoaP0Ye2vx2rtLxkn1IsR?s=cl&p=i&iam=2';
-const WHATSAPP_CONFIRMATION_GROUP='https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94';
+const WHATSAPP_MESSAGE_CHOOSER='https://wa.me/?text=';
 const MAX_VOICE_BYTES=10*1024*1024,MAX_IMAGE_BYTES=10*1024*1024;
 const VOICE_TYPES=new Set(['audio/ogg','audio/opus','audio/mpeg','audio/mp4','audio/x-m4a','audio/wav','audio/x-wav']);
 const IMAGE_TYPES=new Set(['image/jpeg','image/png','image/webp','image/gif']);
@@ -109,17 +108,13 @@ const $=s=>document.querySelector(s);
 const toast=m=>{const e=$('#toast');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2200)};
 const owner=()=>me&&me.role==='owner';
 const roleLabel=()=>owner()?t('Team leader view'):t('Recruiter view');
-async function copyText(text){
-  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return true}}catch{}
-  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy')}catch{}ta.remove();return ok
-}
 async function openWhatsAppGroup(url,text,message){
-  const copied=await copyText(text);
-  const opened=window.open(url,'_blank','noopener');
-  if(!opened){location.href=url;return}
-  toast(copied?message:'Copy the message here, then paste it into the WhatsApp group.');
+  const popup=window.open('about:blank','_blank');
+  const destination=`${WHATSAPP_MESSAGE_CHOOSER}${encodeURIComponent(text)}`;
+  if(popup&&!popup.closed){popup.location.href=destination}else location.href=destination;
+  toast(message);
 }
-const openConfirmationGroup=async(c,url)=>{const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[c.offer||'-']).join(', ')}\nInterview: ${c.interview_date||'To be confirmed'} ${c.interview_time||''}\nScreenshot: ${url}`;await openWhatsAppGroup(WHATSAPP_CONFIRMATION_GROUP,text,t('Screenshot copied. Paste it in the confirmation WhatsApp group.'))};
+const openConfirmationGroup=async(c,url)=>{const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[c.offer||'-']).join(', ')}\nInterview: ${c.interview_date||'To be confirmed'} ${c.interview_time||''}\nScreenshot: ${url}`;await openWhatsAppGroup('',text,'WhatsApp is ready. Choose the confirmation group and press Send.')};
 const clearFlow=()=>{flowId=null;flowStep=1;history.replaceState(null,'',location.pathname+location.search);render()};
 const validateFile=(f,{image=false}={})=>{if(!f)return t(image?'Choose a screenshot first':'Choose a voice note first');const max=image?MAX_IMAGE_BYTES:MAX_VOICE_BYTES;if(f.size>max)return `${t('File is too large')} (max ${Math.round(max/1024/1024)} MB)`;const types=image?IMAGE_TYPES:VOICE_TYPES;if(!types.has((f.type||'').toLowerCase()))return t('Unsupported file type');return null};
 const fileName=f=>String(f.name||'file').replace(/[^\w.\-]/g,'_');
@@ -192,7 +187,7 @@ function bindForm(){
 }
 async function wa(c){
   const m=`New candidate voice note\n\nCandidate: ${c.full_name}\nOffer: ${c.offer||'-'}\nRecruiter: ${c.recruiter_name||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nVoice note: ${c.voice_url||'-'}`;
-  await openWhatsAppGroup(WHATSAPP_RECRUITER_GROUP,m,t('Candidate submission copied. Paste it in the recruiter WhatsApp group.'))}
+  await openWhatsAppGroup('',m,'WhatsApp is ready. Choose the recruiter group and press Send.')}
 function list(){
   const k=q.trim().toLowerCase();
   const r=D.c.filter(c=>(flt==='All'||c.status===flt)&&(!k||[c.full_name,c.phone,c.offer,c.email].some(v=>(v||'').toLowerCase().includes(k))));
