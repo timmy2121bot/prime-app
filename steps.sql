@@ -5,7 +5,9 @@ alter table candidates add column if not exists deletion_requested_by uuid refer
 alter table candidates add column if not exists deletion_requested_at timestamptz;
 alter table offers add column if not exists form_link text, add column if not exists template_url text;
 
-insert into offers(name, form_link) values
+insert into offers(name, form_link)
+select distinct on (name) name, form_link
+from (values
   ('TPro Talabat Account — Customer Service Representatives – TPro Talabat Account', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
   ('Teleperformance — Airline', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
   ('CENTRO — Customer services', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
@@ -35,7 +37,9 @@ insert into offers(name, form_link) values
   ('O4U — Female HR Generalist', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
   ('O4U — Telesales', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform'),
   ('O4U — TEAM LEADER OPPORTUNITY', 'https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform')
-on conflict (name) do update set form_link = excluded.form_link;
+  ) as incoming(name, form_link)
+  order by name
+  on conflict (name) do update set form_link = excluded.form_link;
 
 create table if not exists post_likes(post_id bigint references news(id) on delete cascade, user_id uuid references profiles(id) on delete cascade default auth.uid(), primary key(post_id,user_id));
 create table if not exists post_comments(id bigserial primary key, post_id bigint references news(id) on delete cascade, user_id uuid default auth.uid(), author text, body text not null, parent_id bigint references post_comments(id) on delete cascade, created_at timestamptz default now());
@@ -196,7 +200,9 @@ alter table candidates add column if not exists confirmation_message text;
 alter table candidates add column if not exists attendance_status text default 'pending';
 alter table candidates add column if not exists site_confirmed boolean default false;
 
-insert into offers(name, workflow_process, interview_schedule, interview_type, confirmation_template, workflow_notes) values
+insert into offers(name, workflow_process, interview_schedule, interview_type, confirmation_template, workflow_notes)
+select distinct on (name) name, workflow_process, interview_schedule, interview_type, confirmation_template, workflow_notes
+from (values
 ('TPro Talabat Account🤍🔥 — Customer Service Representatives – TPro Talabat Account', 'Voice Note Validation → Schedule Site Interview', '—', 'Online Interview', 'Online Interview.', 'Training Details:
 - Duration: 6 weeks.
 - Total Training Package: EGP 7,000.
@@ -735,4 +741,6 @@ Saturday & Sunday: Off'),
 ('WGs🔥 — Solar Florida – Experienced Cold Caller (Remote)', 'Client Validation → Script → Online Interview', '.', 'Online Interview', 'Online Interview.', 'PC or Laptop required
 USB Headset only
 Stable internet connection; LAN cable is mandatory')
+ ) as incoming(name, workflow_process, interview_schedule, interview_type, confirmation_template, workflow_notes)
+order by name
 on conflict (name) do update set workflow_process=excluded.workflow_process, interview_schedule=excluded.interview_schedule, interview_type=excluded.interview_type, confirmation_template=excluded.confirmation_template, workflow_notes=excluded.workflow_notes;
