@@ -126,7 +126,7 @@ function bindForm(){
   };
 }
 function wa(c){
-  const m=`New candidate voice note\n\nCandidate: ${c.full_name}\nOffer: ${c.offer||'-'}\nRecruiter: ${c.recruiter_name||'-'}\nPhone: ${c.phone||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nVoice note: ${c.voice_url||'-'}`;
+  const m=`New candidate voice note\n\nCandidate: ${c.full_name}\nOffer: ${c.offer||'-'}\nRecruiter: ${c.recruiter_name||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nVoice note: ${c.voice_url||'-'}`;
   navigator.clipboard?.writeText(m);
   const u='https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94';if(!window.open(u,'_blank'))location.href=u;toast('Candidate submission copied. Paste it in the recruiter WhatsApp group.')}
 function list(){
