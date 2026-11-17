@@ -36,6 +36,7 @@ audio{width:100%;margin:8px 0}
 .empty{color:var(--mu);text-align:center;padding:30px}
 .nt{border-color:var(--b)}.nt.Rejected{border-top-color:var(--no);border-right-color:var(--no);border-bottom-color:var(--no)}.nt.Accepted,.nt.Hired{border-top-color:var(--ok);border-right-color:var(--ok);border-bottom-color:var(--ok)}
 .comments{margin-top:12px;border-top:1px solid var(--b);padding-top:10px}.comment{position:relative;margin:8px 0 0 12px;padding-left:12px}.comment.reply{margin-left:34px}.comment.reply:before{content:"";position:absolute;left:-18px;top:-8px;width:18px;height:24px;border-left:2px solid #294454;border-bottom:2px solid #294454;border-bottom-left-radius:10px}.comment-bubble{display:inline-block;max-width:100%;background:#111b24;border:1px solid #213746;border-radius:14px;padding:8px 11px}.comment-author{font-size:13px;font-weight:800;color:var(--tx)}.comment-text{display:block;color:#d4e3ec;margin-top:2px;white-space:pre-wrap;overflow-wrap:anywhere}.comment-actions{display:flex;gap:4px;align-items:center;margin-top:3px}.comment-actions button{border:0;padding:2px 6px;font-size:12px;color:var(--mu);border-radius:8px}.comment-actions button:hover,.comment-actions button.p{color:var(--a);background:#12303f}.reply-box{display:flex;gap:6px;max-width:100%;margin:6px 0 0 4px}.reply-box input{padding:7px 10px;font-size:13px}.reply-box button{padding:5px 10px;font-size:13px}
+.confirm-msg{white-space:pre-wrap;background:#091017;border:1px solid var(--b);border-radius:12px;padding:14px;font:inherit;line-height:1.5;overflow:auto;max-height:420px}
 .seg{display:flex;gap:6px;margin-bottom:14px}.seg button{flex:1;border-radius:30px}.seg button.on{background:#12303f;border-color:var(--a);color:var(--a);font-weight:700}
 .pages{display:flex;overflow:hidden}.pg{min-width:100%;transition:margin .3s}.pages:not(.f) #pf{height:0;overflow:hidden}.pages.f .pg:first-child{height:0;overflow:hidden;margin-inline-start:-100%}
 .steps{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.steps span{font-size:12px;padding:3px 9px;border-radius:20px;border:1px solid var(--b);color:var(--mu)}.steps .done{background:#0d2b21;color:var(--ok);border-color:#165a41}.steps .cur{border-color:var(--a);color:var(--a)}
@@ -148,9 +149,9 @@ function cardHTML(c){
       act=`<div class="meta">Step 3 — fill the application form${ls?'':' (no link set for this offer yet)'}</div><div class="chips">${ls}<button class="p fd">✔ I filled the form</button></div>`}
     else if(!c.shot_url){const tp=safe(ao.map(o=>off(o).template_url).find(Boolean));
       act=`<div class="meta">Step 4 — send a screenshot like this template:</div>${tp?`<img class="tpl" src="${esc(tp)}" alt="template">`:''}<input type="file" class="sf" accept="image/*"><div style="margin-top:8px"><button class="p ss">Send screenshot</button></div>`}
-    else act=`<div class="meta">✅ All steps complete · <a class="lk" href="${esc(c.shot_url)}" target="_blank" rel="noopener">Screenshot</a></div>`;
+    else act=`<div class="meta">✅ Screenshot uploaded · <a class="lk" href="${esc(c.shot_url)}" target="_blank" rel="noopener">Open screenshot</a></div><div class="meta">${c.attendance_status==='confirmed'?'✅ Confirmed to attend':c.attendance_status==='reschedule'?'⚠️ Reschedule requested':'⏳ Awaiting attendance confirmation'}</div>`;
   }
-  const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>
+  const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>${c.shot_url?`<div class="chips"><button data-att="confirmed" class="${c.attendance_status==='confirmed'?'on':''}">✅ Confirmed</button><button data-att="reschedule" class="${c.attendance_status==='reschedule'?'on':''}">⚠️ Needs reschedule</button></div>`:''}
 <div class="chips acc" style="display:${['Accepted','Interview','Hired'].includes(c.status)?'flex':'none'}">${D.o.filter(o=>o.active||ao.includes(o.name)).map(o=>`<button data-o="${esc(o.name)}" class="${ao.includes(o.name)?'on':''}">${esc(o.name)}</button>`).join('')}</div>
 <textarea rows="2" placeholder="${t('Feedback')}">${esc(c.feedback||'')}</textarea>`:(c.feedback?`<div class="meta">💬 ${esc(c.feedback)}</div>`:'');
   return`<div class="card cc" data-id="${c.id}" data-st="${c.status}"><div class="row"><b style="font-size:18px">${esc(c.full_name)}</b><span class="badge ${c.status}">${t(c.status)}</span></div>
@@ -162,27 +163,35 @@ function renderFlow(){
   const c=D.c.find(x=>x.id===flowId);
   if(!c){flowId=null;history.replaceState(null,'',location.pathname+location.search);return render()}
   const offers=(c.approved_offers||[]).map(n=>D.o.find(o=>o.name===n)||{name:n});
-  const templates=offers.map(o=>safe(o.template_url)).filter(Boolean);
-  const links=offers.map(formUrl).filter(Boolean);
-  const isWgs=offers.some(o=>/^WGs\b/i.test(o.name||''));
+  const selectedOffers=offers.filter(o=>(c.approved_offers||[]).some(name=>name===o.name||name.startsWith(o.name)||o.name.startsWith(name)));
+  const effectiveOffers=selectedOffers.length?selectedOffers:offers.slice(0,1);
+  const workflows=effectiveOffers.map(workflowFor);
+  const templates=effectiveOffers.map(o=>safe(o.template_url)).filter(Boolean);
+  const links=effectiveOffers.map(formUrl).filter(Boolean);
+  const isWgs=effectiveOffers.some(o=>/^WGs\b/i.test(o.name||''));
+  const needsDate=workflows.some(o=>/site|schedule/i.test(`${o.interview_type||''} ${o.workflow_process||''}`));
+  const schedule=[...new Set(workflows.map(o=>o.interview_schedule).filter(Boolean))].join(' · ');
   const a=$('#app');
   if(flowStep===1){
     const action=isWgs?`<p>For this offer, please contact the recruiter directly instead of completing the interview form.</p><p><a class="lk" href="https://wa.me/201157701658?text=${encodeURIComponent(`WGs candidate: ${c.full_name}`)}" target="_self">💬 Text recruiter on WhatsApp</a></p>`:links.length?links.map((u,i)=>`<p><a class="lk" href="${esc(u)}" target="_self">📝 Open application form${links.length>1?' '+(i+1):''}</a></p>`).join(''):'<p class="meta">No application form link has been added for this offer yet.</p>';
-    a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">${isWgs?'Contact recruiter':'Application form'}</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div>${isWgs?'<p>WGs applications are handled by WhatsApp.</p>':'<p>Open the application form, complete it, then press Next.</p>'}${action}${isWgs?'':'<button class="p" id="next">Next →</button>'}</div>`;
+    const scheduleHtml=needsDate?`<label>Interview date</label><input id="interview-date" type="date" value="${esc(c.interview_date||'')}"><label>Interview time</label><input id="interview-time" type="time" value="${esc(c.interview_time||'')}"><div class="meta">Available schedule: ${esc(schedule||'See offer details')}</div>`:'';
+    a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">${isWgs?'Contact recruiter':'Application form'}</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div>${isWgs?'<p>WGs applications are handled by WhatsApp.</p>':'<p>Open the application form, complete it, then continue here.</p>'}${action}${scheduleHtml}${isWgs?'':'<button class="p" id="next">Next →</button>'}</div>`;
     $('#back').onclick=()=>{flowId=null;history.replaceState(null,'',location.pathname+location.search);render()};
-    if(!isWgs)$('#next').onclick=async()=>{const{error}=await sb.from('candidates').update({form_done:true}).eq('id',c.id);if(error)return toast(error.message);await load();flowStep=2;render()};
+    if(!isWgs)$('#next').onclick=async()=>{const date=$('#interview-date')?.value||null,time=$('#interview-time')?.value||null;if(needsDate&&(!date||!time))return toast('Choose the interview date and time first');const message=workflowMessage(workflows[0],c,date,time);const{error}=await sb.from('candidates').update({form_done:true,interview_date:date,interview_time:time,confirmation_message:message}).eq('id',c.id);if(error)return toast(error.message);await load();flowStep=2;render()};
     return
   }
   const template=templates[0];
-  a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Confirmation message</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Upload the screenshot confirming the candidate's attendance, then press Send.</p>${template?`<img class="tpl" src="${esc(template)}" alt="Confirmation template">`:''}<label>Confirmation screenshot</label><input id="confirm-shot" type="file" accept="image/*"><div class="msg" id="flow-er"></div><button class="p" id="send-confirm">Send to WhatsApp group</button></div>`;
+  const message=c.confirmation_message||workflowMessage(workflows[0],c,c.interview_date,c.interview_time);
+  a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Confirmation message</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><pre class="confirm-msg" id="confirm-msg">${esc(message)}</pre><button class="p" id="copy-confirm">Copy confirmation</button><p class="meta"><b>Important:</b> upload the attendance screenshot one day before the interview. This is the final confirmation step.</p>${template?`<img class="tpl" src="${esc(template)}" alt="Confirmation template">`:''}<label>Confirmation screenshot</label><input id="confirm-shot" type="file" accept="image/*"><div class="msg" id="flow-er"></div><button class="p" id="send-confirm">Upload screenshot and send</button></div>`;
   $('#back').onclick=()=>{flowStep=1;render()};
+  $('#copy-confirm').onclick=async()=>{await navigator.clipboard.writeText(message);toast('Confirmation copied')};
   $('#send-confirm').onclick=async()=>{
     const f=$('#confirm-shot').files[0];if(!f)return $('#flow-er').textContent='Choose the confirmation screenshot first';
     const b=$('#send-confirm');b.disabled=true;const path=`${sess.user.id}/confirmation-${Date.now()}-${f.name.replace(/[^\w.\-]/g,'_')}`;const u=await sb.storage.from('voice-notes').upload(path,f);
     if(u.error){b.disabled=false;return $('#flow-er').textContent=u.error.message}
-    const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await sb.from('candidates').update({shot_path:path,shot_url:url}).eq('id',c.id);
+    const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await sb.from('candidates').update({shot_path:path,shot_url:url,attendance_status:'pending'}).eq('id',c.id);
     if(error){b.disabled=false;return $('#flow-er').textContent=error.message}
-    const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[]).join(', ')}\nScreenshot: ${url}`;
+    const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[]).join(', ')}\nInterview: ${c.interview_date||'To be confirmed'} ${c.interview_time||''}\nScreenshot: ${url}`;
     window.open('https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94','_blank');navigator.clipboard?.writeText(text);toast('Message copied. Paste it in the WhatsApp group.');await load();flowId=null;flowStep=1;history.replaceState(null,'',location.pathname+location.search);render();
   };
 }
@@ -190,6 +199,7 @@ function bindCard(el){
   const c=D.c.find(x=>x.id===el.dataset.id);
   el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{el.dataset.st=b.dataset.s;el.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x===b));el.querySelector('.acc').style.display=['Accepted','Interview','Hired'].includes(b.dataset.s)?'flex':'none'});
   el.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+  el.querySelectorAll('[data-att]').forEach(b=>b.onclick=async()=>{const{error}=await sb.from('candidates').update({attendance_status:b.dataset.att}).eq('id',c.id);if(error)return toast(error.message);await load();render()});
   el.querySelector('.w').onclick=()=>wa(c);
   const fd=el.querySelector('.fd');if(fd)fd.onclick=async()=>{const{error}=await sb.from('candidates').update({form_done:true}).eq('id',c.id);if(error)return toast(error.message);await load();render();toast(t('Saved'))};
   const ss=el.querySelector('.ss');if(ss)ss.onclick=async()=>{const f=el.querySelector('.sf').files[0];if(!f)return toast('Choose a screenshot first');ss.disabled=true;
@@ -208,6 +218,8 @@ function bindCard(el){
 const INTERVIEW_FORM_URL='https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform';
 const safe=u=>/^https?:\/\//i.test(u||'')?u:'';
 const formUrl=o=>safe(o.form_link)||INTERVIEW_FORM_URL;
+const workflowFor=o=>o.workflow_process?o:{...o,workflow_process:/WGs/i.test(o.name||'')?'Client Validation → Script → Online Interview':'Voice Note Validation → Schedule Site Interview',interview_type:/WGs/i.test(o.name||'')?'Online Interview':'Site / In-person Interview',confirmation_template:'Hello '+(o.name||'')+',\n\nYour interview has been scheduled.\n\n📅 Date: [DATE]\n⏰ Time: [TIME]\n\nPlease reply with Confirmed if you will attend.',interview_schedule:''};
+const workflowMessage=(o,c,date,time)=>{const w=workflowFor(o),day=date?new Date(`${date}T12:00:00`).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'To be confirmed';return String(w.confirmation_template||'Online Interview.').replace(/\[Candidate Name\]|\*Candidate Name\*|candidate name/gi,c.full_name).replace(/\[DATE\]|\*day\*|\*{3,}day\*|Interview Date:[^\n]*/gi,day).replace(/\[TIME\]|\*time\*|\*{3,}time\*/gi,time||'To be confirmed')};
 function openCandidateFlow(id){
   if(!D.c.some(c=>c.id===id))return toast('Candidate is not available for this account');
   flowId=id;flowStep=1;history.replaceState(null,'',`#candidate/${encodeURIComponent(id)}`);render();
