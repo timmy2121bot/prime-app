@@ -128,7 +128,7 @@ function bindForm(){
 function wa(c){
   const m=`New candidate voice note\n\nCandidate: ${c.full_name}\nOffer: ${c.offer||'-'}\nRecruiter: ${c.recruiter_name||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nVoice note: ${c.voice_url||'-'}`;
   navigator.clipboard?.writeText(m);
-  const u='https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94';if(!window.open(u,'_blank'))location.href=u;toast('Candidate submission copied. Paste it in the recruiter WhatsApp group.')}
+  const u='https://chat.whatsapp.com/EnoaP0Ye2vx2rtLxkn1IsR?s=cl&p=i&iam=2';if(!window.open(u,'_blank'))location.href=u;toast('Candidate submission copied. Paste it in the recruiter WhatsApp group.')}
 function list(){
   const k=q.trim().toLowerCase();
   const r=D.c.filter(c=>(flt==='All'||c.status===flt)&&(!k||[c.full_name,c.phone,c.offer,c.email].some(v=>(v||'').toLowerCase().includes(k))));
