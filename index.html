@@ -109,7 +109,17 @@ const $=s=>document.querySelector(s);
 const toast=m=>{const e=$('#toast');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2200)};
 const owner=()=>me&&me.role==='owner';
 const roleLabel=()=>owner()?t('Team leader view'):t('Recruiter view');
-const openConfirmationGroup=(c,url)=>{const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[c.offer||'-']).join(', ')}\nInterview: ${c.interview_date||'To be confirmed'} ${c.interview_time||''}\nScreenshot: ${url}`;navigator.clipboard?.writeText(text);if(!window.open(WHATSAPP_CONFIRMATION_GROUP,'_blank'))location.href=WHATSAPP_CONFIRMATION_GROUP;toast(t('Screenshot copied. Paste it in the confirmation WhatsApp group.'))};
+async function copyText(text){
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return true}}catch{}
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy')}catch{}ta.remove();return ok
+}
+async function openWhatsAppGroup(url,text,message){
+  const copied=await copyText(text);
+  const opened=window.open(url,'_blank','noopener');
+  if(!opened){location.href=url;return}
+  toast(copied?message:'Copy the message here, then paste it into the WhatsApp group.');
+}
+const openConfirmationGroup=async(c,url)=>{const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[c.offer||'-']).join(', ')}\nInterview: ${c.interview_date||'To be confirmed'} ${c.interview_time||''}\nScreenshot: ${url}`;await openWhatsAppGroup(WHATSAPP_CONFIRMATION_GROUP,text,t('Screenshot copied. Paste it in the confirmation WhatsApp group.'))};
 const clearFlow=()=>{flowId=null;flowStep=1;history.replaceState(null,'',location.pathname+location.search);render()};
 const validateFile=(f,{image=false}={})=>{if(!f)return t(image?'Choose a screenshot first':'Choose a voice note first');const max=image?MAX_IMAGE_BYTES:MAX_VOICE_BYTES;if(f.size>max)return `${t('File is too large')} (max ${Math.round(max/1024/1024)} MB)`;const types=image?IMAGE_TYPES:VOICE_TYPES;if(!types.has((f.type||'').toLowerCase()))return t('Unsupported file type');return null};
 const fileName=f=>String(f.name||'file').replace(/[^\w.\-]/g,'_');
@@ -180,10 +190,9 @@ function bindForm(){
     showForm=false;await load();render();toast(t('Saved'));wa(row);
   };
 }
-function wa(c){
+async function wa(c){
   const m=`New candidate voice note\n\nCandidate: ${c.full_name}\nOffer: ${c.offer||'-'}\nRecruiter: ${c.recruiter_name||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nVoice note: ${c.voice_url||'-'}`;
-  navigator.clipboard?.writeText(m);
-  if(!window.open(WHATSAPP_RECRUITER_GROUP,'_blank'))location.href=WHATSAPP_RECRUITER_GROUP;toast(t('Candidate submission copied. Paste it in the recruiter WhatsApp group.'))}
+  await openWhatsAppGroup(WHATSAPP_RECRUITER_GROUP,m,t('Candidate submission copied. Paste it in the recruiter WhatsApp group.'))}
 function list(){
   const k=q.trim().toLowerCase();
   const r=D.c.filter(c=>(flt==='All'||c.status===flt)&&(!k||[c.full_name,c.phone,c.offer,c.email].some(v=>(v||'').toLowerCase().includes(k))));
