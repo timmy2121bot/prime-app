@@ -87,7 +87,7 @@ function render(){
   const un=tab==='a'?0:D.a.filter(x=>x.id>(+localStorage.seen||0)).length;const tabs=[['c',`${t('Candidates')} (${D.c.length})`],['t',`${t('Team')} (${D.t.length})`],['a',`🔔 ${t('Alerts')}${un?` (${un})`:''}`],];if(owner())tabs.push(['i',t('Invites')]);
   a.innerHTML=`<div class="seg"><button data-v="w" class="${view==='w'?'on':''}">🧭 ${t('Work')}</button><button data-v="f" class="${view==='f'?'on':''}">📰 ${t('News')}</button></div><div class="pages${view==='f'?' f':''}" id="pg"><section class="pg"><div class="tabs">${tabs.map(x=>`<button data-t="${x[0]}" class="${tab===x[0]?'on':''}">${x[1]}</button>`).join('')}</div><div id="pane"></div></section><section class="pg" id="pf"></section></div>`;
   a.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;showForm=false;render()});
-  ({c:paneC,t:paneT,a:paneA,i:paneI})[tab]();paneF();bindPages();
+  bindPages();({c:paneC,t:paneT,a:paneA,i:paneI})[tab]();paneF();
 }
 
 /* ---------- Candidates ---------- */
