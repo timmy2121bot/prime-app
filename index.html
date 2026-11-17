@@ -177,11 +177,12 @@ function renderFlow(){
     const scheduleHtml=needsDate?`<label>Interview date</label><input id="interview-date" type="date" value="${esc(c.interview_date||'')}"><label>Interview time</label><input id="interview-time" type="time" value="${esc(c.interview_time||'')}"><div class="meta">Available schedule: ${esc(schedule||'See offer details')}</div>`:'';
     a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">${isWgs?'Contact recruiter':'Application form'}</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div>${isWgs?'<p>WGs applications are handled by WhatsApp.</p>':'<p>Open the application form, complete it, then continue here.</p>'}${action}${scheduleHtml}${isWgs?'':'<button class="p" id="next">Next →</button>'}</div>`;
     $('#back').onclick=()=>{flowId=null;history.replaceState(null,'',location.pathname+location.search);render()};
-    if(!isWgs)$('#next').onclick=async()=>{const date=$('#interview-date')?.value||null,time=$('#interview-time')?.value||null;if(needsDate&&(!date||!time))return toast('Choose the interview date and time first');const message=workflowMessage(workflows[0],c,date,time);const{error}=await sb.from('candidates').update({form_done:true,interview_date:date,interview_time:time,confirmation_message:message}).eq('id',c.id);if(error)return toast(error.message);await load();flowStep=2;render()};
+    if(!isWgs)$('#next').onclick=async()=>{const date=$('#interview-date')?.value||null,time=$('#interview-time')?.value||null;if(needsDate&&(!date||!time))return toast('Choose the interview date and time first');const message=workflowMessage(workflows[0],c,date,time);const{error}=await saveWorkflow(c.id,{form_done:true,interview_date:date,interview_time:time,confirmation_message:message});if(error)return toast(error.message);await load();flowStep=2;render()};
     return
   }
   const template=templates[0];
-  const message=c.confirmation_message||workflowMessage(workflows[0],c,c.interview_date,c.interview_time);
+  const draft=workflowDraft(c.id),savedDate=c.interview_date||draft.interview_date,savedTime=c.interview_time||draft.interview_time;
+  const message=c.confirmation_message||draft.confirmation_message||workflowMessage(workflows[0],c,savedDate,savedTime);
   a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Confirmation message</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><pre class="confirm-msg" id="confirm-msg">${esc(message)}</pre><button class="p" id="copy-confirm">Copy confirmation</button><p class="meta"><b>Important:</b> upload the attendance screenshot one day before the interview. This is the final confirmation step.</p>${template?`<img class="tpl" src="${esc(template)}" alt="Confirmation template">`:''}<label>Confirmation screenshot</label><input id="confirm-shot" type="file" accept="image/*"><div class="msg" id="flow-er"></div><button class="p" id="send-confirm">Upload screenshot and send</button></div>`;
   $('#back').onclick=()=>{flowStep=1;render()};
   $('#copy-confirm').onclick=async()=>{await navigator.clipboard.writeText(message);toast('Confirmation copied')};
@@ -189,9 +190,9 @@ function renderFlow(){
     const f=$('#confirm-shot').files[0];if(!f)return $('#flow-er').textContent='Choose the confirmation screenshot first';
     const b=$('#send-confirm');b.disabled=true;const path=`${sess.user.id}/confirmation-${Date.now()}-${f.name.replace(/[^\w.\-]/g,'_')}`;const u=await sb.storage.from('voice-notes').upload(path,f);
     if(u.error){b.disabled=false;return $('#flow-er').textContent=u.error.message}
-    const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await sb.from('candidates').update({shot_path:path,shot_url:url,attendance_status:'pending'}).eq('id',c.id);
+    const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await saveWorkflow(c.id,{shot_path:path,shot_url:url,attendance_status:'pending'});
     if(error){b.disabled=false;return $('#flow-er').textContent=error.message}
-    const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[]).join(', ')}\nInterview: ${c.interview_date||'To be confirmed'} ${c.interview_time||''}\nScreenshot: ${url}`;
+    const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[]).join(', ')}\nInterview: ${savedDate||'To be confirmed'} ${savedTime||''}\nScreenshot: ${url}`;
     window.open('https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94','_blank');navigator.clipboard?.writeText(text);toast('Message copied. Paste it in the WhatsApp group.');await load();flowId=null;flowStep=1;history.replaceState(null,'',location.pathname+location.search);render();
   };
 }
@@ -220,6 +221,8 @@ const safe=u=>/^https?:\/\//i.test(u||'')?u:'';
 const formUrl=o=>safe(o.form_link)||INTERVIEW_FORM_URL;
 const workflowFor=o=>o.workflow_process?o:{...o,workflow_process:/WGs/i.test(o.name||'')?'Client Validation → Script → Online Interview':'Voice Note Validation → Schedule Site Interview',interview_type:/WGs/i.test(o.name||'')?'Online Interview':'Site / In-person Interview',confirmation_template:'Hello '+(o.name||'')+',\n\nYour interview has been scheduled.\n\n📅 Date: [DATE]\n⏰ Time: [TIME]\n\nPlease reply with Confirmed if you will attend.',interview_schedule:''};
 const workflowMessage=(o,c,date,time)=>{const w=workflowFor(o),day=date?new Date(`${date}T12:00:00`).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'To be confirmed';return String(w.confirmation_template||'Online Interview.').replace(/\[Candidate Name\]|\*Candidate Name\*|candidate name/gi,c.full_name).replace(/\[DATE\]|\*day\*|\*{3,}day\*|Interview Date:[^\n]*/gi,day).replace(/\[TIME\]|\*time\*|\*{3,}time\*/gi,time||'To be confirmed')};
+const workflowDraft=id=>{try{return JSON.parse(localStorage.getItem(`prime-workflow-${id}`)||'null')||{}}catch{return{}}};
+const saveWorkflow=async(id,data)=>{const full={...data};let r=await sb.from('candidates').update(full).eq('id',id);if(r.error&&/schema cache|column .* does not exist/i.test(r.error.message)){const base={};if('form_done'in full)base.form_done=full.form_done;if('shot_path'in full)base.shot_path=full.shot_path;if('shot_url'in full)base.shot_url=full.shot_url;r=await sb.from('candidates').update(base).eq('id',id);if(!r.error)localStorage.setItem(`prime-workflow-${id}`,JSON.stringify({...workflowDraft(id),...data}))}return r};
 function openCandidateFlow(id){
   if(!D.c.some(c=>c.id===id))return toast('Candidate is not available for this account');
   flowId=id;flowStep=1;history.replaceState(null,'',`#candidate/${encodeURIComponent(id)}`);render();
