@@ -119,6 +119,7 @@ alter table candidates add column if not exists interview_date date;
 alter table candidates add column if not exists interview_time time;
 alter table candidates add column if not exists confirmation_message text;
 alter table candidates add column if not exists attendance_status text default 'pending';
+alter table candidates add column if not exists site_confirmed boolean default false;
 
 insert into offers(name, workflow_process, interview_schedule, interview_type, confirmation_template, workflow_notes) values
 ('TPro Talabat Account🤍🔥 — Customer Service Representatives – TPro Talabat Account', 'Voice Note Validation → Schedule Site Interview', '—', 'Online Interview', 'Online Interview.', 'Training Details:
