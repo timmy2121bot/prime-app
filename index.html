@@ -186,7 +186,7 @@ function bindForm(){
   };
 }
 async function wa(c){
-  const m=`New candidate voice note\n\nCandidate: ${c.full_name}\nOffer: ${c.offer||'-'}\nRecruiter: ${c.recruiter_name||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nVoice note: ${c.voice_url||'-'}`;
+  const m=`Recruiter: ${c.recruiter_name||'-'}\nCandidate: ${c.full_name||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nApplied Offer: ${c.offer||'-'}\nOffer Name: ${c.offer||'-'}\nVoice Note: ${c.voice_url||'-'}`;
   await openWhatsAppGroup('',m,'WhatsApp is ready. Choose the recruiter group and press Send.')}
 function list(){
   const k=q.trim().toLowerCase();
