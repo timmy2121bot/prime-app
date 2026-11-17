@@ -99,9 +99,9 @@ const MAX_VOICE_BYTES=10*1024*1024,MAX_IMAGE_BYTES=10*1024*1024;
 const VOICE_TYPES=new Set(['audio/ogg','audio/opus','audio/mpeg','audio/mp4','audio/x-m4a','audio/wav','audio/x-wav']);
 const IMAGE_TYPES=new Set(['image/jpeg','image/png','image/webp','image/gif']);
 const ST=['New','Contacted','Interview','Accepted','Hired','Rejected','No answer'];
-const AR={'Log in':'تسجيل الدخول','Sign up':'إنشاء حساب','Log out':'خروج','Email':'البريد الإلكتروني','Password':'كلمة المرور','Finish setup':'إكمال الإعداد','Full name':'الاسم الكامل','Invite code':'رمز الدعوة','Candidates':'المرشحون','Team':'الفريق','News':'الأخبار','Invites':'الدعوات','+ Add candidate':'+ إضافة مرشح','Search name, phone or job':'ابحث بالاسم أو الهاتف أو الوظيفة','All':'الكل','New':'جديد','Contacted':'تم التواصل','Interview':'مقابلة','Accepted':'مقبول','Hired':'تم التوظيف','Rejected':'مرفوض','No answer':'لا رد','Phone':'الهاتف','Age':'العمر','Overnight shift':'وردية ليلية','Offer':'العرض','Voice note':'ملاحظة صوتية','Save':'حفظ','Delete':'حذف','WhatsApp':'واتساب','Yes':'نعم','No':'لا','Feedback':'ملاحظات','Post':'نشر','Generate invite':'إنشاء دعوة','Copy':'نسخ','Add':'إضافة','Offers':'العروض','Submit candidate':'إرسال المرشح','Cancel':'إلغاء','Saved':'تم الحفظ','Copied':'تم النسخ','Owner':'قائد الفريق','Recruiter':'مجند','Used':'مستخدم','Unused':'غير مستخدم','Remove':'إزالة','Alerts':'التنبيهات','Voice note of':'ملاحظة صوتية لـ','Search...':'بحث...','by':'بواسطة','Work':'العمل','Comment':'تعليق','Send':'إرسال','Next step':'الخطوة التالية','Name required':'الاسم مطلوب','Choose a voice note first':'اختر الملاحظة الصوتية أولاً','Choose a screenshot first':'اختر لقطة الشاشة أولاً','Choose the confirmation screenshot first':'اختر لقطة تأكيد الحضور أولاً','Delete this post?':'حذف هذا المنشور؟','Delete this comment?':'حذف هذا التعليق؟','Remove this team member?':'إزالة عضو الفريق هذا؟','Delete this candidate?':'حذف هذا المرشح؟','Add a post':'إضافة منشور','Application form':'نموذج التقديم','Contact recruiter':'التواصل مع المجند','Interview date':'تاريخ المقابلة','Interview time':'وقت المقابلة','Next':'التالي','Back to work':'العودة إلى العمل','Confirmation message':'رسالة التأكيد','Confirmation screenshot':'لقطة شاشة التأكيد','Upload screenshot and send':'رفع لقطة الشاشة وإرسال','Confirmation copied':'تم نسخ التأكيد','Candidate submission copied. Paste it in the recruiter WhatsApp group.':'تم نسخ بيانات المرشح. الصقها في مجموعة واتساب الخاصة بالمجندين.','File is too large':'حجم الملف كبير جداً','Unsupported file type':'نوع الملف غير مدعوم','Saving':'جارٍ الحفظ…','Uploading':'جارٍ الرفع…','Team leader view':'واجهة قائد الفريق: تأكيد العروض وقرارات الحضور','Recruiter view':'واجهة المجند: متابعة نتائج التحقق وخطوات المرشحين','Screenshot copied. Paste it in the confirmation WhatsApp group.':'تم نسخ لقطة الشاشة. الصقها في مجموعة واتساب الخاصة بالتأكيد.'};
+const AR={'Log in':'تسجيل الدخول','Sign up':'إنشاء حساب','Log out':'خروج','Email':'البريد الإلكتروني','Password':'كلمة المرور','Finish setup':'إكمال الإعداد','Full name':'الاسم الكامل','Invite code':'رمز الدعوة','Candidates':'المرشحون','Team':'الفريق','News':'الأخبار','Invites':'الدعوات','+ Add candidate':'+ إضافة مرشح','Search name, phone or job':'ابحث بالاسم أو الهاتف أو الوظيفة','All':'الكل','New':'جديد','Contacted':'تم التواصل','Interview':'مقابلة','Accepted':'مقبول','Hired':'تم التوظيف','Rejected':'مرفوض','No answer':'لا رد','Phone':'الهاتف','Age':'العمر','Overnight shift':'وردية ليلية','Offer':'العرض','Voice note':'ملاحظة صوتية','Save':'حفظ','Delete':'حذف','Request deletion':'طلب حذف','Yes':'نعم','No':'لا','Feedback':'ملاحظات','Post':'نشر','Generate invite':'إنشاء دعوة','Copy':'نسخ','Add':'إضافة','Offers':'العروض','Submit candidate':'إرسال المرشح','Cancel':'إلغاء','Saved':'تم الحفظ','Copied':'تم النسخ','Owner':'قائد الفريق','Recruiter':'مجند','Used':'مستخدم','Unused':'غير مستخدم','Remove':'إزالة','Alerts':'التنبيهات','Voice note of':'ملاحظة صوتية لـ','Search...':'بحث...','by':'بواسطة','Work':'العمل','Comment':'تعليق','Send':'إرسال','Next step':'الخطوة التالية','Name required':'الاسم مطلوب','Choose a voice note first':'اختر الملاحظة الصوتية أولاً','Choose a screenshot first':'اختر لقطة الشاشة أولاً','Choose the confirmation screenshot first':'اختر لقطة تأكيد الحضور أولاً','Delete this post?':'حذف هذا المنشور؟','Delete this comment?':'حذف هذا التعليق؟','Remove this team member?':'إزالة عضو الفريق هذا؟','Delete this candidate?':'حذف هذا المرشح؟','Request deletion of this candidate?':'طلب حذف هذا المرشح؟','Approve candidate deletion?':'الموافقة على حذف هذا المرشح؟','Reject deletion request?':'رفض طلب الحذف؟','Deletion requested':'تم إرسال طلب الحذف إلى قائد الفريق','Deletion request pending':'طلب حذف بانتظار موافقة قائد الفريق','Deletion approved':'تمت الموافقة على الحذف','Deletion rejected':'تم رفض طلب الحذف','Approve deletion':'الموافقة على الحذف','Reject':'رفض','Add a post':'إضافة منشور','Application form':'نموذج التقديم','Contact recruiter':'التواصل مع المجند','Interview date':'تاريخ المقابلة','Interview time':'وقت المقابلة','Next':'التالي','Back to work':'العودة إلى العمل','Confirmation message':'رسالة التأكيد','Confirmation screenshot':'لقطة شاشة التأكيد','Upload screenshot and send':'رفع لقطة الشاشة وإرسال','Confirmation copied':'تم نسخ التأكيد','Candidate submission copied. Paste it in the recruiter WhatsApp group.':'تم نسخ بيانات المرشح. الصقها في مجموعة واتساب الخاصة بالمجندين.','File is too large':'حجم الملف كبير جداً','Unsupported file type':'نوع الملف غير مدعوم','Saving':'جارٍ الحفظ…','Uploading':'جارٍ الرفع…','Team leader view':'واجهة قائد الفريق: تأكيد العروض وقرارات الحضور','Recruiter view':'واجهة المجند: متابعة نتائج التحقق وخطوات المرشحين','Screenshot copied. Paste it in the confirmation WhatsApp group.':'تم نسخ لقطة الشاشة. الصقها في مجموعة واتساب الخاصة بالتأكيد.'};
 function parseFlowId(){if(!location.hash.startsWith('#candidate/'))return null;try{const id=decodeURIComponent(location.hash.slice('#candidate/'.length)).trim();return id||null}catch{return null}}
-let lang=localStorage.lang||'en',me=null,sess=null,tab='c',flt='All',q='',showForm=false,D={c:[],t:[],o:[],n:[],i:[],a:[],l:[],m:[],cl:[]},expandedPosts=new Set,expandedThreads=new Set,authMode='in',aq='',ch=null,view='w',flowId=parseFlowId(),flowStep=1;
+let lang=localStorage.lang||'en',me=null,sess=null,tab='c',flt='All',q='',showForm=false,recruiterFilter=null,D={c:[],t:[],o:[],n:[],i:[],a:[],l:[],m:[],cl:[]},expandedPosts=new Set,expandedThreads=new Set,authMode='in',aq='',ch=null,view='w',flowId=parseFlowId(),flowStep=1;
 const t=k=>lang==='ar'&&AR[k]||k;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=s=>document.querySelector(s);
@@ -132,7 +132,7 @@ async function boot(){
 }
 sb.auth.onAuthStateChange((e)=>{if(e==='SIGNED_IN'||e==='SIGNED_OUT')boot()});
 async function load(){
-  const[c,tm,o,n,al,lk,cm,cl]=await Promise.all([sb.from('candidates').select('*').order('created_at',{ascending:false}),sb.from('profiles').select('*').order('created_at'),sb.from('offers').select('*').order('id'),sb.from('news').select('*').order('created_at',{ascending:false}),sb.from('notifications').select('*').order('id',{ascending:false}).limit(100),sb.from('post_likes').select('*'),sb.from('post_comments').select('*').order('id'),sb.from('comment_likes').select('*')]);D.a=al.data||[];D.l=lk.data||[];D.m=cm.data||[];D.cl=cl.data||[];
+  const[c,tm,o,n,al,lk,cm,cl]=await Promise.all([sb.from('candidates').select('*').order('created_at',{ascending:false}),owner()?sb.from('profiles').select('*').order('created_at'):Promise.resolve({data:[],error:null}),owner()?sb.from('offers').select('*').order('id'):sb.from('offers').select('*').eq('active',true).order('id'),owner()?sb.from('news').select('*').order('created_at',{ascending:false}):Promise.resolve({data:[],error:null}),sb.from('notifications').select('*').order('id',{ascending:false}).limit(100),owner()?sb.from('post_likes').select('*'):Promise.resolve({data:[],error:null}),owner()?sb.from('post_comments').select('*').order('id'):Promise.resolve({data:[],error:null}),owner()?sb.from('comment_likes').select('*'):Promise.resolve({data:[],error:null})]);D.a=al.data||[];D.l=lk.data||[];D.m=cm.data||[];D.cl=cl.data||[];
   D.c=c.data||[];D.t=tm.data||[];D.o=o.data||[];D.n=n.data||[];
   if(owner()){const i=await sb.from('invites').select('*').order('created_at',{ascending:false});D.i=i.data||[]}
 }
@@ -146,19 +146,20 @@ function render(){
   if(!me){a.innerHTML=`<div class="card"><h2>${t('Finish setup')}</h2><label>${t('Full name')}</label><input id="fn"><label>${t('Invite code')}</label><input id="ic" autocapitalize="characters"><p class="meta">Leave the code empty only if you are the first account (the owner).</p><div class="msg" id="er"></div><button class="p" id="go">${t('Finish setup')}</button></div>`;
     $('#go').onclick=async()=>{const{error}=await sb.rpc('finish_setup',{p_name:$('#fn').value.trim(),p_code:$('#ic').value.trim().toUpperCase()});if(error)$('#er').textContent=error.message;else boot()};return}
   if(flowId){renderFlow();return}
-  const un=tab==='a'?0:D.a.filter(x=>x.id>(+localStorage.seen||0)).length;const tabs=[['c',`${t('Candidates')} (${D.c.length})`],['t',`${t('Team')} (${D.t.length})`],['a',`🔔 ${t('Alerts')}${un?` (${un})`:''}`],];if(owner())tabs.push(['i',t('Invites')]);
-  a.innerHTML=`<div class="seg"><button data-v="w" class="${view==='w'?'on':''}">🧭 ${t('Work')}</button><button data-v="f" class="${view==='f'?'on':''}">📰 ${t('News')}</button></div><div class="meta role-note">${roleLabel()}</div><div class="pages${view==='f'?' f':''}" id="pg"><section class="pg"><div class="tabs">${tabs.map(x=>`<button data-t="${x[0]}" class="${tab===x[0]?'on':''}">${x[1]}</button>`).join('')}</div><div id="pane"></div></section><section class="pg" id="pf"></section></div>`;
+  const un=tab==='a'?0:D.a.filter(x=>x.id>(+localStorage.seen||0)).length;const tabs=owner()?[['c',`${t('Candidates')} (${D.c.length})`],['t',`${t('Team')} (${D.t.length})`],['a',`🔔 ${t('Alerts')}${un?` (${un})`:''}`],['i',t('Invites')]]:[['c',`${t('Candidates')} (${D.c.length})`]];
+  a.innerHTML=`${owner()?`<div class="seg"><button data-v="w" class="${view==='w'?'on':''}">🧭 ${t('Work')}</button><button data-v="f" class="${view==='f'?'on':''}">📰 ${t('News')}</button></div>`:''}<div class="meta role-note">${roleLabel()}</div><div class="pages${owner()&&view==='f'?' f':''}" id="pg"><section class="pg"><div class="tabs">${tabs.map(x=>`<button data-t="${x[0]}" class="${tab===x[0]?'on':''}">${x[1]}</button>`).join('')}</div><div id="pane"></div></section>${owner()?'<section class="pg" id="pf"></section>':''}</div>`;
   a.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;showForm=false;render()});
-  bindPages();({c:paneC,t:paneT,a:paneA,i:paneI})[tab]();paneF();
+  bindPages();({c:paneC,t:paneT,a:paneA,i:paneI})[tab]();if(owner())paneF();
 }
 
 /* ---------- Candidates ---------- */
 function paneC(){
   const p=$('#pane');
   const cnt=s=>s==='All'?D.c.length:D.c.filter(x=>x.status===s).length;
-  p.innerHTML=`<div class="card" id="fm">${showForm?formHTML():`<button id="ad">${t('+ Add candidate')}</button>`}</div>
+  p.innerHTML=`${owner()&&recruiterFilter?`<div class="card"><button id="clear-recruiter">← ${t('Team')}</button><h2 style="margin-top:10px">${esc(D.t.find(x=>x.id===recruiterFilter)?.full_name||t('Recruiter'))}</h2><div class="meta">${t('Candidates')}: ${D.c.filter(x=>x.recruiter_id===recruiterFilter).length}</div></div>`:''}<div class="card" id="fm">${showForm?formHTML():`<button id="ad">${t('+ Add candidate')}</button>`}</div>
   <input id="sr" placeholder="${t('Search name, phone or job')}" value="${esc(q)}" style="margin-bottom:12px">
   <div class="chips">${['All',...ST].map(s=>`<button data-f="${s}" class="${flt===s?'on':''}">${t(s)} ${cnt(s)}</button>`).join('')}</div><div id="list"></div>`;
+  if(recruiterFilter)$('#clear-recruiter').onclick=()=>{recruiterFilter=null;flt='All';paneC()};
   if(showForm)bindForm();else $('#ad').onclick=()=>{showForm=true;paneC()};
   $('#sr').oninput=e=>{q=e.target.value;list()};
   p.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{flt=b.dataset.f;paneC()});
@@ -190,7 +191,7 @@ async function wa(c){
   await openWhatsAppGroup('',m,'WhatsApp is ready. Choose the recruiter group and press Send.')}
 function list(){
   const k=q.trim().toLowerCase();
-  const r=D.c.filter(c=>(flt==='All'||c.status===flt)&&(!k||[c.full_name,c.phone,c.offer,c.email].some(v=>(v||'').toLowerCase().includes(k))));
+  const r=D.c.filter(c=>(!recruiterFilter||c.recruiter_id===recruiterFilter)&&(flt==='All'||c.status===flt)&&(!k||[c.full_name,c.phone,c.offer,c.email].some(v=>(v||'').toLowerCase().includes(k))));
   const L=$('#list');
   L.innerHTML=r.length?r.map(cardHTML).join(''):`<div class="empty">—</div>`;
   L.querySelectorAll('.cc').forEach(bindCard);
@@ -218,14 +219,14 @@ function cardHTML(c){
       act=`<div class="meta">Step 4 — send a screenshot like this template:</div>${tp?`<img class="tpl" src="${esc(tp)}" alt="template">`:''}<input type="file" class="sf" accept="image/*"><div style="margin-top:8px"><button class="p ss">Send screenshot</button></div>`}
     else act=`<div class="meta">✅ Screenshot uploaded · <a class="lk" href="${esc(c.shot_url)}" target="_blank" rel="noopener">Open screenshot</a></div><div class="meta">${c.attendance_status==='confirmed'?'✅ Confirmed to attend':c.attendance_status==='reschedule'?'⚠️ Reschedule requested':'⏳ Awaiting attendance confirmation'}</div>`;
   }
-  const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>${c.shot_url?`<div class="chips"><button data-att="confirmed" class="${c.attendance_status==='confirmed'?'on':''}">✅ Confirmed to attend</button><button data-att="reschedule" class="${c.attendance_status==='reschedule'?'on':''}">❌ Not confirmed / needs reschedule</button></div>`:''}
+  const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>${c.shot_url?`<div class="chips"><button data-att="confirmed" class="${c.attendance_status==='confirmed'?'on':''}">✅ Confirmed to attend</button><button data-att="reschedule" class="${c.attendance_status==='reschedule'?'on':''}">❌ Not confirmed / needs reschedule</button></div>`:''}${c.deletion_requested?`<div class="card" style="margin-top:8px;border-color:var(--no)"><div class="meta">⚠️ ${t('Deletion request pending')}</div><div class="chips"><button class="p" data-delete-approve="${c.id}">${t('Approve deletion')}</button><button data-delete-reject="${c.id}">${t('Reject')}</button></div></div>`:''}
 <div class="chips acc" style="display:${['Accepted','Interview','Hired'].includes(c.status)?'flex':'none'}">${D.o.filter(o=>o.active||ao.includes(o.name)).map(o=>`<button data-o="${esc(o.name)}" class="${ao.includes(o.name)?'on':''}">${esc(o.name)}</button>`).join('')}</div>
 <textarea rows="2" placeholder="${t('Feedback')}">${esc(c.feedback||'')}</textarea>`:(c.feedback?`<div class="meta">💬 ${esc(c.feedback)}</div>`:'');
   return`<div class="card cc" data-id="${c.id}" data-st="${c.status}"><div class="row"><b style="font-size:18px">${esc(c.full_name)}</b><span class="badge ${c.status}">${t(c.status)}</span></div>
 <div class="steps">${stp}</div>
 <div class="meta">${c.phone?`<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · `:''}${esc(c.email||'')}<br>${t('Age')}: ${c.age||'-'} · ${t('Overnight shift')}: ${c.overnight?t('Yes'):t('No')} · ${t('Offer')}: ${esc(c.offer||'-')}${ao.length?' → '+esc(ao.join(' · ')):''}<br>${esc(c.recruiter_name||'')} · ${new Date(c.created_at).toLocaleDateString()}</div>
 ${c.voice_url?`<audio controls preload="none" src="${esc(c.voice_url)}"></audio>`:''}${act}${ow}
-<div class="row" style="margin-top:10px"><span>${owner()?`<button class="p sv">${t('Save')}</button> `:''}<button class="w">Send to recruiter WhatsApp group</button></span>${mine?`<button class="d dl">${t('Delete')}</button>`:''}</div></div>`}
+<div class="row" style="margin-top:10px"><span>${owner()?`<button class="p sv">${t('Save')}</button> `:''}<button class="w">Send to recruiter WhatsApp group</button></span>${mine?`<button class="d dl">${owner()?t('Delete'):c.deletion_requested?t('Deletion request pending'):t('Request deletion')}</button>`:''}</div></div>`}
 function renderFlow(){
   const c=D.c.find(x=>x.id===flowId);
   if(!c){return clearFlow()}
@@ -280,10 +281,24 @@ function bindCard(el){
     const ap=['Accepted','Interview','Hired'].includes(el.dataset.st)?[...el.querySelectorAll('[data-o].on')].map(b=>b.dataset.o):[];
     const{error}=await sb.from('candidates').update({status:el.dataset.st,approved_offers:ap,feedback:el.querySelector('textarea').value}).eq('id',c.id);
     if(error)return toast(error.message);await load();render();toast(t('Saved'))};
-  if(el.querySelector('.dl'))el.querySelector('.dl').onclick=async()=>{
-    if(!confirm(t('Delete this candidate?')))return;
+  if(el.querySelector('[data-delete-approve]'))el.querySelector('[data-delete-approve]').onclick=async()=>{
+    if(!confirm(t('Approve candidate deletion?')))return;
     if(c.voice_path){const{error}=await sb.storage.from(STORAGE_BUCKET).remove([c.voice_path]);if(error)return toast(error.message)}
     const{error}=await sb.from('candidates').delete().eq('id',c.id);if(error)return toast(error.message);await load();render()};
+  if(el.querySelector('[data-delete-reject]'))el.querySelector('[data-delete-reject]').onclick=async()=>{
+    if(!confirm(t('Reject deletion request?')))return;
+    const{error}=await sb.from('candidates').update({deletion_requested:false,deletion_requested_by:null,deletion_requested_at:null}).eq('id',c.id);if(error)return toast(error.message);await load();render();toast(t('Deletion rejected'))};
+  if(el.querySelector('.dl'))el.querySelector('.dl').onclick=async()=>{
+    if(owner()){
+      if(!confirm(t('Delete this candidate?')))return;
+      if(c.voice_path){const{error}=await sb.storage.from(STORAGE_BUCKET).remove([c.voice_path]);if(error)return toast(error.message)}
+      const{error}=await sb.from('candidates').delete().eq('id',c.id);if(error)return toast(error.message);await load();render();
+    }else{
+      if(c.deletion_requested)return toast(t('Deletion request pending'));
+      if(!confirm(t('Request deletion of this candidate?')))return;
+      const{error}=await sb.from('candidates').update({deletion_requested:true,deletion_requested_by:sess.user.id,deletion_requested_at:new Date().toISOString()}).eq('id',c.id);
+      if(error)return toast(error.message);await load();render();toast(t('Deletion requested'));
+    }};
 }
 
 const INTERVIEW_FORM_URL='https://docs.google.com/forms/d/e/1FAIpQLSdX9wowvKBMNdYfhY2-PMQ0csK7XjQAoc0RlZS044OcY0fD4Q/viewform';
@@ -318,7 +333,7 @@ function openCandidateFlow(id){
   if(!D.c.some(c=>c.id===id))return toast('Candidate is not available for this account');
   flowId=id;flowStep=1;history.replaceState(null,'',`#candidate/${encodeURIComponent(id)}`);render();
 }
-const acts=n=>{if(!['Accepted','Interview','Hired'].includes(n.status)||!(n.offers||[]).length||(n.feedback||'').startsWith('Step'))return'';
+const acts=n=>{if(owner()&&/Deletion requested/i.test(n.feedback||''))return`<div class="chips" style="margin-top:8px"><button class="p" data-delete-alert="approve" data-candidate="${esc(n.candidate_id)}">${t('Approve deletion')}</button><button data-delete-alert="reject" data-candidate="${esc(n.candidate_id)}">${t('Reject')}</button></div>`;if(!['Accepted','Interview','Hired'].includes(n.status)||!(n.offers||[]).length||(n.feedback||'').startsWith('Step'))return'';
   const mine=D.c.some(c=>c.id===n.candidate_id);
   return`<div class="chips" style="margin-top:8px">${mine?`<button type="button" class="p" data-go="${esc(n.candidate_id)}">${t('Next step')} →</button>`:''}</div>`};
 function setView(v){view=v;const g=$('#pg');if(g)g.classList.toggle('f',v==='f');document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
@@ -351,11 +366,11 @@ ${expandedPosts.has(n.id)?`<div class="comments"><div class="row"><span class="m
 }
 /* ---------- Alerts (live) ---------- */
 const EM={New:'⏳',Contacted:'📞',Interview:'🎤',Accepted:'✅',Hired:'🏆',Rejected:'❌','No answer':'📵'};
-function live(){if(ch)return;ch=sb.channel('nt').on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},async p=>{const n=p.new;await load();if(!document.querySelector('textarea:focus,input:focus'))render();if(tab!=='a')toast(`${EM[n.status]||'🔔'} ${n.candidate_name}: ${t(n.status)}`)}).subscribe()}
+function live(){if(ch)return;ch=sb.channel('nt').on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},async p=>{const n=p.new;await load();const mine=owner()||D.c.some(c=>c.id===n.candidate_id&&c.recruiter_id===sess.user.id);if(!mine)return;if(!document.querySelector('textarea:focus,input:focus'))render();if(tab!=='a')toast(`${EM[n.status]||'🔔'} ${n.candidate_name}: ${t(n.status)}`)}).subscribe()}
 function paneA(){
   if(D.a[0])localStorage.seen=D.a[0].id;
   $('#pane').innerHTML=`<input id="as" placeholder="🔍 ${t('Search...')}" value="${esc(aq)}" style="margin-bottom:12px"><div id="al"></div>`;
-  const draw=()=>{const k=aq.trim().toLowerCase();
+  let draw=()=>{const k=aq.trim().toLowerCase();
     const r=D.a.filter(n=>!k||[n.candidate_name,n.offer,(n.offers||[]).join(' '),n.feedback,n.status].some(v=>(v||'').toLowerCase().includes(k)));
     $('#al').innerHTML=r.length?r.map(n=>{const d=new Date(n.created_at);
       const w=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' at '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -364,7 +379,9 @@ function paneA(){
     $('#al').querySelectorAll('[data-go]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();openCandidateFlow(b.dataset.go)});
   };
   $('#as').oninput=e=>{aq=e.target.value;draw()};
-  draw();
+  const reviewDeletion=async(b)=>{const c=D.c.find(x=>x.id===b.dataset.candidate);if(!c)return toast('Candidate is not available');if(b.dataset.deleteAlert==='approve'){if(!confirm(t('Approve candidate deletion?')))return;if(c.voice_path){const{error}=await sb.storage.from(STORAGE_BUCKET).remove([c.voice_path]);if(error)return toast(error.message)}const{error}=await sb.from('candidates').delete().eq('id',c.id);if(error)return toast(error.message)}else{if(!confirm(t('Reject deletion request?')))return;const{error}=await sb.from('candidates').update({deletion_requested:false,deletion_requested_by:null,deletion_requested_at:null}).eq('id',c.id);if(error)return toast(error.message)}await load();render()};
+  const bindDeletionAlerts=()=>$('#al').querySelectorAll('[data-delete-alert]').forEach(b=>b.onclick=()=>reviewDeletion(b));
+  const originalDraw=draw;draw=()=>{originalDraw();bindDeletionAlerts()};draw();
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-go]');
@@ -373,7 +390,9 @@ document.addEventListener('click',e=>{
 
 /* ---------- Team ---------- */
 function paneT(){
-  $('#pane').innerHTML=D.t.map(m=>`<div class="card"><div class="row"><b>${esc(m.full_name)}</b><span class="badge">${t(m.role==='owner'?'Owner':'Recruiter')}</span></div>${owner()?`<div class="meta">${t('Candidates')}: ${D.c.filter(c=>c.recruiter_id===m.id).length}</div>`:''}${owner()&&m.id!==me.id?`<button class="d" data-r="${m.id}">${t('Remove')}</button>`:''}</div>`).join('');
+  const recruiters=D.t.filter(m=>m.role!=='owner');
+  $('#pane').innerHTML=`<div class="meta">${t('Select a recruiter to view all candidates and their process progress.')}</div>`+recruiters.map(m=>{const cs=D.c.filter(c=>c.recruiter_id===m.id),accepted=cs.filter(c=>['Accepted','Hired'].includes(c.status)).length,interviews=cs.filter(c=>c.status==='Interview').length,hired=cs.filter(c=>c.status==='Hired').length;return `<div class="card recruiter-card" data-recruiter="${m.id}"><div class="row"><b>${esc(m.full_name)}</b><span class="badge">${t('Recruiter')}</span></div><div class="meta">${t('Candidates')}: ${cs.length} · ${t('Accepted')}: ${accepted} · ${t('Interview')}: ${interviews} · ${t('Hired')}: ${hired}</div>${owner()&&m.id!==me.id?`<button class="d" data-r="${m.id}">${t('Remove')}</button>`:''}</div>`}).join('')||'<div class="empty">—</div>';
+  document.querySelectorAll('.recruiter-card').forEach(card=>card.onclick=e=>{if(e.target.closest('[data-r]'))return;recruiterFilter=card.dataset.recruiter;tab='c';paneC()});
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=async()=>{if(!confirm(t('Remove this team member?')))return;const{error}=await sb.from('profiles').delete().eq('id',b.dataset.r);if(error)return toast(error.message);await load();render()});
 }
 

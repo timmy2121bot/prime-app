@@ -53,6 +53,9 @@ create table candidates(
   status text default 'New',
   approved_offers text[] default '{}',
   feedback text,
+  deletion_requested boolean default false,
+  deletion_requested_by uuid references profiles(id) on delete set null,
+  deletion_requested_at timestamptz,
   created_at timestamptz default now()
 );
 
@@ -117,7 +120,7 @@ alter table news enable row level security;
 alter table candidates enable row level security;
 
 create policy p_sel on profiles
-  for select to authenticated using (true);
+  for select to authenticated using (is_owner() or id = auth.uid());
 create policy p_del on profiles
   for delete to authenticated
   using (is_owner() and id <> auth.uid());
@@ -127,13 +130,13 @@ create policy i_all on invites
   using (is_owner()) with check (is_owner());
 
 create policy o_sel on offers
-  for select to authenticated using (true);
+  for select to authenticated using (is_owner() or active = true);
 create policy o_all on offers
   for all to authenticated
   using (is_owner()) with check (is_owner());
 
 create policy n_sel on news
-  for select to authenticated using (true);
+  for select to authenticated using (is_owner());
 create policy n_all on news
   for all to authenticated
   using (is_owner()) with check (is_owner());
@@ -149,7 +152,49 @@ create policy c_upd on candidates
   using (is_owner() or recruiter_id = auth.uid());
 create policy c_del on candidates
   for delete to authenticated
-  using (is_owner() or recruiter_id = auth.uid());
+  using (is_owner());
+
+create or replace function enforce_recruiter_scope() returns trigger
+language plpgsql security definer set search_path=public as $$
+begin
+  if auth.uid() is null or is_owner() then return new; end if;
+  if new.status is distinct from old.status
+     or new.approved_offers is distinct from old.approved_offers
+     or coalesce(new.feedback,'') is distinct from coalesce(old.feedback,'')
+     or new.full_name is distinct from old.full_name
+     or new.phone is distinct from old.phone
+     or new.email is distinct from old.email
+     or new.age is distinct from old.age
+     or new.overnight is distinct from old.overnight
+     or new.offer is distinct from old.offer
+     or new.recruiter_name is distinct from old.recruiter_name
+     or new.recruiter_id is distinct from old.recruiter_id
+     or new.voice_path is distinct from old.voice_path
+     or new.voice_url is distinct from old.voice_url then
+    if new.deletion_requested is true and old.deletion_requested is false
+       and new.deletion_requested_by = auth.uid()
+       and new.deletion_requested_at is not null
+       and new.status is not distinct from old.status
+       and new.approved_offers is not distinct from old.approved_offers
+       and new.full_name is not distinct from old.full_name
+       and new.phone is not distinct from old.phone
+       and new.email is not distinct from old.email
+       and new.age is not distinct from old.age
+       and new.overnight is not distinct from old.overnight
+       and new.offer is not distinct from old.offer
+       and new.recruiter_name is not distinct from old.recruiter_name
+       and new.recruiter_id is not distinct from old.recruiter_id
+       and new.voice_path is not distinct from old.voice_path
+       and new.voice_url is not distinct from old.voice_url then
+      return new;
+    end if;
+    raise exception 'Only the owner can validate or edit candidates';
+  end if;
+  return new;
+end
+$$;
+create trigger trg_recruiter_scope before update on candidates
+for each row execute function enforce_recruiter_scope();
 
 insert into storage.buckets(id, name, public)
 values('voice-notes', 'voice-notes', true)
@@ -179,7 +224,11 @@ create table notifications(
 alter table notifications enable row level security;
 
 create policy a_sel on notifications
-  for select to authenticated using (true);
+  for select to authenticated
+  using (is_owner() or exists (
+    select 1 from candidates c
+    where c.id = notifications.candidate_id and c.recruiter_id = auth.uid()
+  ));
 create policy a_del on notifications
   for delete to authenticated
   using (is_owner());
@@ -193,7 +242,8 @@ begin
   if tg_op = 'INSERT'
      or new.status is distinct from old.status
      or new.approved_offers is distinct from old.approved_offers
-     or coalesce(new.feedback, '') is distinct from coalesce(old.feedback, '') then
+     or coalesce(new.feedback, '') is distinct from coalesce(old.feedback, '')
+     or new.deletion_requested is distinct from old.deletion_requested then
     insert into notifications(
       candidate_id,
       candidate_name,
@@ -209,7 +259,9 @@ begin
       new.status,
       new.approved_offers,
       new.offer,
-      new.feedback,
+      case when tg_op = 'UPDATE' and new.deletion_requested and not coalesce(old.deletion_requested, false)
+        then 'Deletion requested — team leader approval required'
+        else new.feedback end,
       (select full_name from profiles where id = auth.uid())
     );
   end if;

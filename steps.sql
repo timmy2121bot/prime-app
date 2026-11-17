@@ -1,5 +1,8 @@
 -- Run ONCE in Supabase SQL Editor, AFTER setup_all.sql (do not re-run setup_all.sql)
 alter table candidates add column if not exists form_done boolean default false, add column if not exists shot_path text, add column if not exists shot_url text;
+alter table candidates add column if not exists deletion_requested boolean default false;
+alter table candidates add column if not exists deletion_requested_by uuid references profiles(id) on delete set null;
+alter table candidates add column if not exists deletion_requested_at timestamptz;
 alter table offers add column if not exists form_link text, add column if not exists template_url text;
 
 insert into offers(name, form_link) values
@@ -60,13 +63,77 @@ create policy cl_sel on comment_likes for select to authenticated using (true);
 create policy cl_ins on comment_likes for insert to authenticated with check (user_id=auth.uid());
 create policy cl_del on comment_likes for delete to authenticated using (user_id=auth.uid());
 
+-- Recruiter isolation: only the team leader can see team records, news, and all alerts.
+drop policy if exists p_sel on profiles;
+create policy p_sel on profiles for select to authenticated
+  using (is_owner() or id = auth.uid());
+drop policy if exists n_sel on news;
+create policy n_sel on news for select to authenticated
+  using (is_owner());
+drop policy if exists o_sel on offers;
+create policy o_sel on offers for select to authenticated
+  using (is_owner() or active = true);
+drop policy if exists l_sel on post_likes;
+drop policy if exists m_sel on post_comments;
+drop policy if exists cl_sel on comment_likes;
+create policy l_sel on post_likes for select to authenticated using (is_owner());
+create policy m_sel on post_comments for select to authenticated using (is_owner());
+create policy cl_sel on comment_likes for select to authenticated using (is_owner());
+drop policy if exists c_del on candidates;
+create policy c_del on candidates for delete to authenticated
+  using (is_owner());
+drop policy if exists a_sel on notifications;
+create policy a_sel on notifications for select to authenticated
+  using (is_owner() or exists (
+    select 1 from candidates c
+    where c.id = notifications.candidate_id and c.recruiter_id = auth.uid()
+  ));
+drop policy if exists c_del on candidates;
+create policy c_del on candidates for delete to authenticated
+  using (is_owner());
+
 -- Steps cannot be skipped (enforced in the database, not just the screen)
 create or replace function enforce_steps() returns trigger language plpgsql security definer set search_path=public as $$
 begin
   if auth.uid() is null then return new; end if;
   if not is_owner() then
     if new.status is distinct from old.status or new.approved_offers is distinct from old.approved_offers
-       or coalesce(new.feedback,'')<>coalesce(old.feedback,'') then
+       or coalesce(new.feedback,'')<>coalesce(old.feedback,'')
+       or new.full_name is distinct from old.full_name
+       or new.phone is distinct from old.phone
+       or new.email is distinct from old.email
+       or new.age is distinct from old.age
+       or new.overnight is distinct from old.overnight
+       or new.offer is distinct from old.offer
+       or new.recruiter_name is distinct from old.recruiter_name
+       or new.recruiter_id is distinct from old.recruiter_id
+       or new.voice_path is distinct from old.voice_path
+       or new.voice_url is distinct from old.voice_url
+       or new.attendance_status is distinct from old.attendance_status
+       or new.site_confirmed is distinct from old.site_confirmed
+       or new.deletion_requested is distinct from old.deletion_requested
+       or new.deletion_requested_by is distinct from old.deletion_requested_by
+       or new.deletion_requested_at is distinct from old.deletion_requested_at then
+      if new.deletion_requested is true
+         and old.deletion_requested is false
+         and new.deletion_requested_by = auth.uid()
+         and new.deletion_requested_at is not null
+         and new.status is not distinct from old.status
+         and new.approved_offers is not distinct from old.approved_offers
+         and new.full_name is not distinct from old.full_name
+         and new.phone is not distinct from old.phone
+         and new.email is not distinct from old.email
+         and new.age is not distinct from old.age
+         and new.overnight is not distinct from old.overnight
+         and new.offer is not distinct from old.offer
+         and new.recruiter_name is not distinct from old.recruiter_name
+         and new.recruiter_id is not distinct from old.recruiter_id
+         and new.voice_path is not distinct from old.voice_path
+         and new.voice_url is not distinct from old.voice_url
+         and new.attendance_status is not distinct from old.attendance_status
+         and new.site_confirmed is not distinct from old.site_confirmed then
+        return new;
+      end if;
       raise exception 'Only the owner can validate candidates';
     end if;
   end if;
@@ -102,6 +169,10 @@ begin
     if new.shot_url is not null and old.shot_url is null then
       insert into notifications(candidate_id,candidate_name,status,offers,offer,feedback,actor_name)
       values(new.id,new.full_name,new.status,new.approved_offers,new.offer,'Step 4 done — screenshot sent',who);
+    end if;
+    if new.deletion_requested and not coalesce(old.deletion_requested,false) then
+      insert into notifications(candidate_id,candidate_name,status,offers,offer,feedback,actor_name)
+      values(new.id,new.full_name,new.status,new.approved_offers,new.offer,'Deletion requested — team leader approval required',who);
     end if;
   end if;
   return new;
