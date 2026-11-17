@@ -125,9 +125,9 @@ function bindForm(){
     showForm=false;await load();render();toast(t('Saved'));wa(row);
   };
 }
-function wa(c){ // phone number is NEVER included
+function wa(c){
   const m=`Recruiter: ${c.recruiter_name}\nCandidate: ${c.full_name}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nApplied Offer: ${c.offer||'-'}\nVoice Note: ${c.voice_url||'-'}`;
-  const u='https://wa.me/?text='+encodeURIComponent(m);if(!window.open(u,'_blank'))location.href=u}
+  const u='https://wa.me/201157701658?text='+encodeURIComponent(m);if(!window.open(u,'_blank'))location.href=u}
 function list(){
   const k=q.trim().toLowerCase();
   const r=D.c.filter(c=>(flt==='All'||c.status===flt)&&(!k||[c.full_name,c.phone,c.offer,c.email].some(v=>(v||'').toLowerCase().includes(k))));
@@ -165,7 +165,7 @@ function cardHTML(c){
 <div class="steps">${stp}</div>
 <div class="meta">${c.phone?`<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · `:''}${esc(c.email||'')}<br>${t('Age')}: ${c.age||'-'} · ${t('Overnight shift')}: ${c.overnight?t('Yes'):t('No')} · ${t('Offer')}: ${esc(c.offer||'-')}${ao.length?' → '+esc(ao.join(' · ')):''}<br>${esc(c.recruiter_name||'')} · ${new Date(c.created_at).toLocaleDateString()}</div>
 ${c.voice_url?`<audio controls preload="none" src="${esc(c.voice_url)}"></audio>`:''}${act}${ow}
-<div class="row" style="margin-top:10px"><span>${owner()?`<button class="p sv">${t('Save')}</button> `:''}<button class="w">${t('WhatsApp')}</button></span>${mine?`<button class="d dl">${t('Delete')}</button>`:''}</div></div>`}
+<div class="row" style="margin-top:10px"><span>${owner()?`<button class="p sv">${t('Save')}</button> `:''}<button class="w">Send to Timmy on WhatsApp</button></span>${mine?`<button class="d dl">${t('Delete')}</button>`:''}</div></div>`}
 function renderFlow(){
   const c=D.c.find(x=>x.id===flowId);
   if(!c){flowId=null;history.replaceState(null,'',location.pathname+location.search);return render()}
