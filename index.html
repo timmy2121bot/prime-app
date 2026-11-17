@@ -149,32 +149,6 @@ function cardHTML(c){
       act=`<div class="meta">Step 4 — send a screenshot like this template:</div>${tp?`<img class="tpl" src="${esc(tp)}" alt="template">`:''}<input type="file" class="sf" accept="image/*"><div style="margin-top:8px"><button class="p ss">Send screenshot</button></div>`}
     else act=`<div class="meta">✅ All steps complete · <a class="lk" href="${esc(c.shot_url)}" target="_blank" rel="noopener">Screenshot</a></div>`;
   }
-  function renderFlow(){
-    const c=D.c.find(x=>x.id===flowId);
-    if(!c){flowId=null;history.replaceState(null,'',location.pathname+location.search);return render()}
-    const offers=(c.approved_offers||[]).map(n=>D.o.find(o=>o.name===n)||{name:n});
-    const templates=offers.map(o=>safe(o.template_url)).filter(Boolean);
-    const links=offers.map(o=>safe(o.form_link)).filter(Boolean);
-    const a=$('#app');
-    if(flowStep===1){
-      a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Application form</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Open the application form, complete it, then press Next.</p>${links.length?links.map((u,i)=>`<p><a class="lk" href="${esc(u)}" target="_blank" rel="noopener">📝 Open application form${links.length>1?' '+(i+1):''}</a></p>`).join(''):'<p class="meta">No application form link has been added for this offer yet.</p>'}<button class="p" id="next">Next →</button></div>`;
-      $('#back').onclick=()=>{flowId=null;history.replaceState(null,'',location.pathname+location.search);render()};
-      $('#next').onclick=async()=>{const{error}=await sb.from('candidates').update({form_done:true}).eq('id',c.id);if(error)return toast(error.message);await load();flowStep=2;render()};
-      return
-    }
-    const template=templates[0];
-    a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Confirmation message</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Upload the screenshot confirming the candidate's attendance, then press Send.</p>${template?`<img class="tpl" src="${esc(template)}" alt="Confirmation template">`:''}<label>Confirmation screenshot</label><input id="confirm-shot" type="file" accept="image/*"><div class="msg" id="flow-er"></div><button class="p" id="send-confirm">Send to WhatsApp group</button></div>`;
-    $('#back').onclick=()=>{flowStep=1;render()};
-    $('#send-confirm').onclick=async()=>{
-      const f=$('#confirm-shot').files[0];if(!f)return $('#flow-er').textContent='Choose the confirmation screenshot first';
-      const b=$('#send-confirm');b.disabled=true;const path=`${sess.user.id}/confirmation-${Date.now()}-${f.name.replace(/[^\w.\-]/g,'_')}`;const u=await sb.storage.from('voice-notes').upload(path,f);
-      if(u.error){b.disabled=false;return $('#flow-er').textContent=u.error.message}
-      const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await sb.from('candidates').update({shot_path:path,shot_url:url}).eq('id',c.id);
-      if(error){b.disabled=false;return $('#flow-er').textContent=error.message}
-      const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[]).join(', ')}\nScreenshot: ${url}`;
-      window.open('https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94','_blank');navigator.clipboard?.writeText(text);toast('Message copied. Paste it in the WhatsApp group.');await load();flowId=null;flowStep=1;history.replaceState(null,'',location.pathname+location.search);render();
-    };
-  }
   const ow=owner()?`<div class="chips st">${ST.map(s=>`<button data-s="${s}" class="${c.status===s?'on':''}">${t(s)}</button>`).join('')}</div>
 <div class="chips acc" style="display:${['Accepted','Interview','Hired'].includes(c.status)?'flex':'none'}">${D.o.filter(o=>o.active||ao.includes(o.name)).map(o=>`<button data-o="${esc(o.name)}" class="${ao.includes(o.name)?'on':''}">${esc(o.name)}</button>`).join('')}</div>
 <textarea rows="2" placeholder="${t('Feedback')}">${esc(c.feedback||'')}</textarea>`:(c.feedback?`<div class="meta">💬 ${esc(c.feedback)}</div>`:'');
@@ -183,6 +157,32 @@ function cardHTML(c){
 <div class="meta">${c.phone?`<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · `:''}${esc(c.email||'')}<br>${t('Age')}: ${c.age||'-'} · ${t('Overnight shift')}: ${c.overnight?t('Yes'):t('No')} · ${t('Offer')}: ${esc(c.offer||'-')}${ao.length?' → '+esc(ao.join(' · ')):''}<br>${esc(c.recruiter_name||'')} · ${new Date(c.created_at).toLocaleDateString()}</div>
 ${c.voice_url?`<audio controls preload="none" src="${esc(c.voice_url)}"></audio>`:''}${act}${ow}
 <div class="row" style="margin-top:10px"><span>${owner()?`<button class="p sv">${t('Save')}</button> `:''}<button class="w">${t('WhatsApp')}</button></span>${mine?`<button class="d dl">${t('Delete')}</button>`:''}</div></div>`}
+function renderFlow(){
+  const c=D.c.find(x=>x.id===flowId);
+  if(!c){flowId=null;history.replaceState(null,'',location.pathname+location.search);return render()}
+  const offers=(c.approved_offers||[]).map(n=>D.o.find(o=>o.name===n)||{name:n});
+  const templates=offers.map(o=>safe(o.template_url)).filter(Boolean);
+  const links=offers.map(o=>safe(o.form_link)).filter(Boolean);
+  const a=$('#app');
+  if(flowStep===1){
+    a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Application form</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Open the application form, complete it, then press Next.</p>${links.length?links.map((u,i)=>`<p><a class="lk" href="${esc(u)}" target="_blank" rel="noopener">📝 Open application form${links.length>1?' '+(i+1):''}</a></p>`).join(''):'<p class="meta">No application form link has been added for this offer yet.</p>'}<button class="p" id="next">Next →</button></div>`;
+    $('#back').onclick=()=>{flowId=null;history.replaceState(null,'',location.pathname+location.search);render()};
+    $('#next').onclick=async()=>{const{error}=await sb.from('candidates').update({form_done:true}).eq('id',c.id);if(error)return toast(error.message);await load();flowStep=2;render()};
+    return
+  }
+  const template=templates[0];
+  a.innerHTML=`<div class="card"><button id="back">← ${t('Work')}</button><h2 style="margin-top:14px">Confirmation message</h2><div class="meta">${esc(c.full_name)} · ${esc((c.approved_offers||[]).join(' · '))}</div><p>Upload the screenshot confirming the candidate's attendance, then press Send.</p>${template?`<img class="tpl" src="${esc(template)}" alt="Confirmation template">`:''}<label>Confirmation screenshot</label><input id="confirm-shot" type="file" accept="image/*"><div class="msg" id="flow-er"></div><button class="p" id="send-confirm">Send to WhatsApp group</button></div>`;
+  $('#back').onclick=()=>{flowStep=1;render()};
+  $('#send-confirm').onclick=async()=>{
+    const f=$('#confirm-shot').files[0];if(!f)return $('#flow-er').textContent='Choose the confirmation screenshot first';
+    const b=$('#send-confirm');b.disabled=true;const path=`${sess.user.id}/confirmation-${Date.now()}-${f.name.replace(/[^\w.\-]/g,'_')}`;const u=await sb.storage.from('voice-notes').upload(path,f);
+    if(u.error){b.disabled=false;return $('#flow-er').textContent=u.error.message}
+    const url=sb.storage.from('voice-notes').getPublicUrl(path).data.publicUrl;const{error}=await sb.from('candidates').update({shot_path:path,shot_url:url}).eq('id',c.id);
+    if(error){b.disabled=false;return $('#flow-er').textContent=error.message}
+    const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[]).join(', ')}\nScreenshot: ${url}`;
+    window.open('https://chat.whatsapp.com/FnLLoXuOGAwJrONnYwuC94','_blank');navigator.clipboard?.writeText(text);toast('Message copied. Paste it in the WhatsApp group.');await load();flowId=null;flowStep=1;history.replaceState(null,'',location.pathname+location.search);render();
+  };
+}
 function bindCard(el){
   const c=D.c.find(x=>x.id===el.dataset.id);
   el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{el.dataset.st=b.dataset.s;el.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x===b));el.querySelector('.acc').style.display=['Accepted','Interview','Hired'].includes(b.dataset.s)?'flex':'none'});
@@ -226,8 +226,8 @@ ${cm.map(m=>`<div class="meta" style="margin-top:8px"><b style="color:var(--tx)"
   if(owner()){$('#np').onclick=async()=>{const b=$('#nb').value.trim();if(!b)return;await sb.from('news').insert({body:b,author:me.full_name});await load();render()};
     el.querySelectorAll('[data-n]').forEach(b=>b.onclick=async()=>{if(!confirm('?'))return;await sb.from('news').delete().eq('id',b.dataset.n);await load();render()})}
   el.querySelectorAll('[data-p]').forEach(card=>{const id=+card.dataset.p;
-    card.querySelector('.lk2').onclick=async()=>{const liked=D.l.some(x=>x.post_id===id&&x.user_id===sess.user.id);await(liked?sb.from('post_likes').delete().match({post_id:id,user_id:sess.user.id}):sb.from('post_likes').insert({post_id:id}));await load();render()};
-    const go=async()=>{const v=card.querySelector('.ci').value.trim();if(!v)return;await sb.from('post_comments').insert({post_id:id,author:me.full_name,body:v});await load();render()};
+    card.querySelector('.lk2').onclick=async()=>{const liked=D.l.some(x=>x.post_id===id&&x.user_id===sess.user.id);const{error}=await(liked?sb.from('post_likes').delete().match({post_id:id,user_id:sess.user.id}):sb.from('post_likes').insert({post_id:id}));if(error)return toast(error.message);await load();render()};
+    const go=async()=>{const v=card.querySelector('.ci').value.trim();if(!v)return;const{error}=await sb.from('post_comments').insert({post_id:id,author:me.full_name,body:v});if(error)return toast(error.message);await load();render()};
     card.querySelector('.cb').onclick=go;card.querySelector('.ci').onkeydown=e=>{if(e.key==='Enter')go()}});
   el.querySelectorAll('[data-dc]').forEach(a=>a.onclick=async e=>{e.preventDefault();await sb.from('post_comments').delete().eq('id',a.dataset.dc);await load();render()});
 }
