@@ -34,6 +34,9 @@ audio{width:100%;margin:8px 0}
 .acc{display:none;margin-top:8px}
 .msg{color:var(--no);margin:8px 0;min-height:1em}
 .or{text-align:center;color:var(--mu);margin:12px 0 0;font-size:13px}
+#wam{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:14px;z-index:100}
+#wam .box{background:var(--card);border:1px solid var(--a);border-radius:16px;padding:16px;width:100%;max-width:520px;max-height:92vh;overflow:auto}
+#wam .grp{background:#0d2b21;border:1px solid #165a41;color:var(--ok);border-radius:12px;padding:10px 12px;margin:8px 0;font-weight:700}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--a);color:#031018;padding:10px 18px;border-radius:30px;font-weight:700;display:none;z-index:50}
 .empty{color:var(--mu);text-align:center;padding:30px}
 .nt{border-color:var(--b)}.nt.Rejected{border-top-color:var(--no);border-right-color:var(--no);border-bottom-color:var(--no)}.nt.Accepted,.nt.Hired{border-top-color:var(--ok);border-right-color:var(--ok);border-bottom-color:var(--ok)}
@@ -113,17 +116,22 @@ const $=s=>document.querySelector(s);
 const toast=m=>{const e=$('#toast');e.textContent=m;e.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.display='none',2600)};
 const owner=()=>me&&me.role==='owner';
 const roleLabel=()=>owner()?t('Team leader view'):t('Recruiter view');
-/* Opens WhatsApp. If the browser blocks the popup (happens after an upload), we DO NOT navigate away
-   from the app any more; we copy the text instead so nothing typed is lost. */
-function openWhatsAppGroup(url,text,message){
-  const destination=`${WHATSAPP_MESSAGE_CHOOSER}${encodeURIComponent(text)}`;
-  const w=window.open(destination,'_blank');
-  if(w){try{w.opener=null}catch{}toast(message);return}
-  const done=()=>toast(t('Candidate submission copied. Paste it in the recruiter WhatsApp group.'));
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,()=>toast('Popup blocked — use the WhatsApp button on the candidate card'));
-  else toast('Popup blocked — use the WhatsApp button on the candidate card');
+/* MANUAL WhatsApp sending: a popup tells the recruiter WHICH group to use and shows the message;
+   "Open WhatsApp" opens WhatsApp's own chat chooser with the text pre-filled, so the recruiter just picks the group and presses Send.
+   Opening happens on a tap, so browsers never block it, and nothing is lost if it fails (Copy button). */
+const WA_VOICE_GROUP="Timmy's team voice notes",WA_CONFIRM_GROUP='Confirmation';
+function closeSendModal(){const m=document.getElementById('wam');if(m)m.remove()}
+function sendModal({title,group,text}){
+  closeSendModal();
+  const m=document.createElement('div');m.id='wam';
+  m.innerHTML=`<div class="box" role="dialog" aria-modal="true"><h2>📤 ${esc(title)}</h2><div class="grp">⚠️ Send this to the “${esc(group)}” group</div><p class="meta">1) Tap <b>Open WhatsApp</b> · 2) choose the “${esc(group)}” group · 3) press <b>Send</b>.</p><pre class="confirm-msg" id="wa-text">${esc(text)}</pre><div class="chips" style="margin-top:12px"><button class="p" id="wa-open">Open WhatsApp</button><button id="wa-copy">${t('Copy')}</button><button id="wa-close">Close</button></div></div>`;
+  document.body.appendChild(m);
+  m.onclick=e=>{if(e.target===m)closeSendModal()};
+  document.getElementById('wa-close').onclick=closeSendModal;
+  document.getElementById('wa-open').onclick=()=>{const w=window.open(`${WHATSAPP_MESSAGE_CHOOSER}${encodeURIComponent(text)}`,'_blank');if(w){try{w.opener=null}catch{}}else location.href=`${WHATSAPP_MESSAGE_CHOOSER}${encodeURIComponent(text)}`};
+  document.getElementById('wa-copy').onclick=async()=>{try{await navigator.clipboard.writeText(text);toast(t('Copied'))}catch{toast('Could not copy — select the text and copy it manually')}};
 }
-const openConfirmationGroup=async(c,url)=>{const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[c.offer||'-']).join(', ')}\nInterview: ${c.interview_date||'To be confirmed'} ${c.interview_time||''}\nScreenshot: ${url}`;await openWhatsAppGroup('',text,'WhatsApp is ready. Choose the confirmation group and press Send.')};
+const openConfirmationGroup=async(c,url)=>{const text=`Confirmation attendance\nCandidate: ${c.full_name}\nOffer: ${(c.approved_offers||[c.offer||'-']).join(', ')}\nInterview: ${c.interview_date||'To be confirmed'} ${c.interview_time||''}\nScreenshot: ${url}`;sendModal({title:'Send confirmation',group:WA_CONFIRM_GROUP,text})};
 const clearFlow=()=>{flowId=null;flowStep=1;history.replaceState(null,'',location.pathname+location.search);render()};
 const fileExt=f=>{const n=String(f&&f.name||'');return n.includes('.')?n.split('.').pop().toLowerCase():''};
 const isVoiceFile=f=>{const ty=(f.type||'').toLowerCase(),ex=fileExt(f);return ty.startsWith('audio/')||((ty===''||ty==='application/octet-stream')&&ex in VOICE_EXT)};
@@ -216,12 +224,12 @@ function bindForm(){
     if(error){
       if(path)sb.storage.from(STORAGE_BUCKET).remove([path]);
       reset();return er(/voice_link/i.test(error.message)?'Vocaroo links need the database update first: run all_in_one_patch.sql in Supabase, then try again.':error.message)}
-    showForm=false;await load();render();toast(t('Saved'));wa(row);
+    showForm=false;await load();render();toast(t('Saved'));wa({...row,created_at:undefined});
   };
 }
 async function wa(c){
-  const m=`Recruiter: ${c.recruiter_name||'-'}\nCandidate: ${c.full_name||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nApplied Offer: ${c.offer||'-'}\nOffer Name: ${c.offer||'-'}\nVoice Note: ${voiceRef(c)}`;
-  await openWhatsAppGroup('',m,'WhatsApp is ready. Choose the recruiter group and press Send.')}
+  const m=`Candidate: ${c.full_name||'-'}\nEmail: ${c.email||'-'}\nAge: ${c.age||'-'}\nOvernight Shift: ${c.overnight?'Yes':'No'}\nApplied Offer: ${c.offer||'-'}\nRecruiter: ${c.recruiter_name||'-'}\nVoice Note: ${voiceRef(c)}`;
+  sendModal({title:'Send candidate',group:WA_VOICE_GROUP,text:m})}
 function list(){
   const k=q.trim().toLowerCase();
   const r=D.c.filter(c=>(!recruiterFilter||c.recruiter_id===recruiterFilter)&&(flt==='All'||c.status===flt)&&(!k||[c.full_name,c.phone,c.offer,c.email].some(v=>(v||'').toLowerCase().includes(k))));
@@ -260,7 +268,7 @@ function cardHTML(c){
 <div class="steps">${stp}</div>
 <div class="meta">${c.phone?`<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · `:''}${esc(c.email||'')}<br>${t('Age')}: ${c.age||'-'} · ${t('Overnight shift')}: ${c.overnight?t('Yes'):t('No')} · ${t('Offer')}: ${esc(c.offer||'-')}${ao.length?' → '+esc(ao.join(' · ')):''}<br>${esc(c.recruiter_name||'')} · ${new Date(c.created_at).toLocaleDateString()}</div>
 ${voiceHTML(c)}${act}${nextBtn}${ow}
-<div class="row" style="margin-top:10px"><span>${owner()?`<button class="p sv">${t('Save')}</button> `:''}<button class="w">Send to recruiter WhatsApp group</button></span>${mine?`<button class="d dl">${owner()?t('Delete'):c.deletion_requested?t('Deletion request pending'):t('Request deletion')}</button>`:''}</div></div>`}
+<div class="row" style="margin-top:10px"><span>${owner()?`<button class="p sv">${t('Save')}</button> `:''}<button class="w">📤 Send to voice notes group</button></span>${mine?`<button class="d dl">${owner()?t('Delete'):c.deletion_requested?t('Deletion request pending'):t('Request deletion')}</button>`:''}</div></div>`}
 function renderFlow(){
   const c=D.c.find(x=>x.id===flowId);
   if(!c){return clearFlow()}
