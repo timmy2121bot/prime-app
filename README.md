@@ -2,7 +2,7 @@
 
 Recruiter and team-leader candidate tracking application for Timmy's Team.
 
-The app is built as a static `index.html` frontend and uses Supabase for authentication, candidate workflows, database data, file uploads, notifications, and role-based access.
+The app is built as a static `index.html` frontend and uses Supabase for authentication, candidate workflows, database data, file uploads, notifications, and role-based  access.
 
 ## Development
 
